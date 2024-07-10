@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{course}}</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+      }
+
+      header {
+        background-color: #333;
+        color: white;
+        padding: 1em 0;
+        text-align: center;
+      }
+
+      nav {
+        background-color: #444;
+        color: white;
+        padding: 0.5em;
+      }
+
+      nav ul {
+        list-style-type: none;
+        padding: 0;
+      }
+
+      nav ul li {
+        display: inline;
+        margin-right: 1em;
+      }
+
+      nav ul li a {
+        color: white;
+        text-decoration: none;
+      }
+
+      main {
+        padding: 2em;
+      }
+
+      section {
+        margin-bottom: 2em;
+      }
+
+      h2, h3 {
+        color: #333;
+      }
+
+      article {
+        background-color: white;
+        padding: 1em;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      img {
+        max-width: 100%;
+        height: auto;
+        margin: 1em 0;
+      }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>{{course}}</h1>
+        <h2>{{subject}}</h2>
+    </header>
+    <nav>
+        <ul>
+            {% for chapter in chapters %}
+            <li><a href="#{{ chapter|slugify }}">{{ chapter }}</a></li>
+            {% endfor %}
+        </ul>
+    </nav>
+    <main>
+        {% for chapter in chapters %}
+        <section id="{{ chapter|slugify }}">
+            <h2>{{ chapter }}</h2>
+            <article>
+                {% for topic in chapter.outline %}
+                  <h3>{{ topic.topic }}</h3>
+                  {% for subtopic in topic.subtopics %}
+                  <p>{{ subtopic }}</p>
+                  {% endfor %}
+                {% endfor %}
+            </article>
+        </section>
+        {% endfor %}
+    </main>
+</body>
+</html>
