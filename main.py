@@ -1,20 +1,12 @@
-from http.client import HTTPException
-from fastapi import FastAPI
-from pydantic import BaseModel
-from typing import List
 import asyncio
+from http.client import HTTPException
+from fastapi import BackgroundTasks, FastAPI
 
 app = FastAPI()
 
-class User(BaseModel):
-    id: int
-    name: str
-    age: int
-
-users = []
-
 async def simulate_delay(seconds: int):
     await asyncio.sleep(seconds)
+    print("Delay complete")
 
 @app.get("/")
 async def index():
@@ -22,20 +14,12 @@ async def index():
         "message": "Nothing to see here."
     }
 
-
-@app.get("/users", response_model=List[User])
-async def get_users():
+@app.post("/generate")
+async def generate(background_tasks: BackgroundTasks):
     try:
-        await simulate_delay(1)
-        return users
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/users", response_model=User)
-async def create_user(user: User):
-    try:
-        await simulate_delay(1)
-        users.append(user)
-        return user
+        background_tasks.add_task(simulate_delay, 5)
+        return {
+            "status": "task started"
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
