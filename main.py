@@ -1,8 +1,17 @@
 import asyncio
-from http.client import HTTPException
+from dotenv import dotenv_values
+
 from fastapi import BackgroundTasks, FastAPI
+from http.client import HTTPException
+from motor.motor_asyncio import AsyncIOMotorClient
+
+config = dotenv_values(".env")
+
 
 app = FastAPI()
+
+client = AsyncIOMotorClient(config.get('MONGODB_URI'))
+db = client.yduqs
 
 async def simulate_delay(seconds: int):
     await asyncio.sleep(seconds)
@@ -18,6 +27,7 @@ async def index():
 async def generate(background_tasks: BackgroundTasks):
     try:
         background_tasks.add_task(simulate_delay, 5)
+        db.content.insert_one({"status": "task started"})
         return {
             "status": "task started"
         }
