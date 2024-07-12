@@ -1,6 +1,6 @@
 import json
-import src.helpers as helpers
-import src.prompts as prompts
+import app.helpers as helpers
+import app.prompts as prompts
 from gradio_client import Client
 
 from dotenv import dotenv_values
