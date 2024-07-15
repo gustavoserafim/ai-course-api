@@ -1,8 +1,13 @@
+from typing import Optional
 from pydantic import BaseModel
 
 class CourseBase(BaseModel):
     name: str
-    description: str
+    nature: Optional[str] = None
+    faculty_profile: Optional[str] = None
+    sylabus: Optional[str] = None
+    objectives: Optional[str] = None
+    learning_topics: str
 
 class CourseCreate(CourseBase):
     pass
@@ -14,6 +19,5 @@ class CourseResponse(CourseBase):
     id: str
 
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
         arbitrary_types_allowed = True
-        fields = {'id': '_id'}
