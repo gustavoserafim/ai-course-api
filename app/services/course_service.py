@@ -25,11 +25,10 @@ class CourseService:
             courses.append(CourseResponse(**course))
         return courses
 
-    async def get_course(self, course_id: str) -> CourseResponse:
+    async def get_course(self, course_id: str) -> Course:
         course = await self.collection.find_one({"_id": ObjectId(course_id)})
         if course:
-            course['id'] = str(course['_id'])
-            return CourseResponse(**course)
+            return Course(**course)
         return None
 
     async def update_course(self, course_id: str, course_data: CourseUpdate) -> CourseResponse:
