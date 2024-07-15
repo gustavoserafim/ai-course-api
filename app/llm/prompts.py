@@ -28,7 +28,7 @@ def course_prompt(course: str, subject: str) -> str:
     """
     return prompt
 
-def outline_prompt(course: str, subject: str, chapter: str) -> str:
+def create_outline_prompt(course: str, subject: str, chapter: str) -> str:
     output_example = json.dumps({
         "course": "Course Name",
         "subject": "Subject of course",
@@ -59,6 +59,27 @@ def outline_prompt(course: str, subject: str, chapter: str) -> str:
     {output_example}
     """
     return prompt
+
+def convert_outline_prompt(outline: str) -> str:
+    output_example = json.dumps({
+        "content_blocks": [{
+            "type": "TEXT",
+            "content": "Texto sobre o tópico"
+        }]
+    })
+    
+    prompt = f"""
+    Eu tenho o seguinte outline:
+
+    {outline}
+
+    Gostaria que você convertesse esse outline para o seguinte formato, sem 
+    adicionar comentários ao conteúdo:
+
+    {output_example}
+    """
+    return prompt
+
 
 def content_prompt(
     course: str,
