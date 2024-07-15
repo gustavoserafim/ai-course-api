@@ -33,7 +33,7 @@ class CourseService:
         return None
 
     async def update_course(self, course_id: str, course_data: CourseUpdate) -> CourseResponse:
-        update_data = {"$set": course_data.dict()}
+        update_data = {"$set": {k: v for k, v in course_data.dict(exclude_unset=True).items() if v is not None}}
         await self.collection.update_one({"_id": ObjectId(course_id)}, update_data)
         updated_course = await self.collection.find_one({"_id": ObjectId(course_id)})
         updated_course['id'] = str(updated_course['_id'])

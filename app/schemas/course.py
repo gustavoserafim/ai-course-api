@@ -7,7 +7,7 @@ class CourseBase(BaseModel):
     faculty_profile: Optional[str] = None
     sylabus: Optional[str] = None
     objectives: Optional[str] = None
-    learning_topics: str
+    learning_topics: Optional[str] = None
 
 class CourseCreate(CourseBase):
     pass
