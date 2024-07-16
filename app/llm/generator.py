@@ -2,7 +2,7 @@ import json
 import app.llm.helpers as helpers
 import app.llm.prompts as prompts
 from gradio_client import Client
-from app.core import config
+from app.core.config import settings
 from app.models.course import Course
 
 def initialize_llm_client(model: str):
@@ -11,11 +11,11 @@ def initialize_llm_client(model: str):
         print("LLM client initialized")
         return client
     except Exception as e:
-        if config.DEBUG:
+        if settings.DEBUG:
             print(f"Error initializing client: {e}")
         return None
 
-client = initialize_llm_client(config.LLM_MODEL)
+client = initialize_llm_client(settings.LLM_API_URL)
 
 async def generate_content(
     course: Course,
@@ -26,7 +26,7 @@ async def generate_content(
     assert course is not None, "exception:COURSE_REQUIDED"
 
     try:
-        client = Client(config.LLM_MODEL)
+        client = Client(settings.LLM_API_URL)
         prompt = prompts.content_prompt(
             course=course,
             subject=subject,
@@ -36,7 +36,7 @@ async def generate_content(
             has_video=has_video
         )
 
-        if config.DEBUG: helpers.input_stats("generate_content", prompt)
+        if settings.DEBUG: helpers.input_stats("generate_content", prompt)
 
         response = client.predict(
             message=prompt,
@@ -46,7 +46,7 @@ async def generate_content(
             api_name='/predict')
 
         if len(response) > 0:
-            if config.DEBUG: helpers.output_stats("generate_content", response)
+            if settings.DEBUG: helpers.output_stats("generate_content", response)
             if callback:
                 callback(json.loads(response))
             return json.loads(response)
