@@ -1,6 +1,7 @@
 import asyncio
 from typing import List
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from app import tasks
 from app.models.course import Course
 from app.schemas.content import ContentBlock, ContentCreate
 from app.schemas.course import CourseCreate, CourseResponse, CourseUpdate
@@ -63,7 +64,7 @@ async def generate_content(
     course = await course_service.get_course(course_id)
 
     background_tasks.add_task(
-        task_generate_content, 
+        tasks.task_generate_content, 
         course=course, 
         content_service=content_service)
 
