@@ -16,13 +16,13 @@ class CourseService:
         course_dict = course_data.dict()
         result = await self.collection.insert_one(course_dict)
         course_dict['id'] = str(result.inserted_id)
-        return CourseResponse(**course_dict)
+        return Course(**course_dict)
 
     async def get_courses(self) -> List[CourseResponse]:
         courses = []
         async for course in self.collection.find():
             course['id'] = str(course['_id'])
-            courses.append(CourseResponse(**course))
+            courses.append(Course(**course))
         return courses
 
     async def get_course(self, course_id: str) -> Course:
@@ -36,4 +36,4 @@ class CourseService:
         await self.collection.update_one({"_id": ObjectId(course_id)}, update_data)
         updated_course = await self.collection.find_one({"_id": ObjectId(course_id)})
         updated_course['id'] = str(updated_course['_id'])
-        return CourseResponse(**updated_course)
+        return Course(**updated_course)

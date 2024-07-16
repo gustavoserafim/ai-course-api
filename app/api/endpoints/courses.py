@@ -11,11 +11,13 @@ router = APIRouter()
 
 @router.post("/", response_model=CourseResponse)
 async def create_course(course: CourseCreate, service: CourseService = Depends()):
-    return await service.create_course(course)
+    course = await service.create_course(course)
+    return course.to_response()
 
 @router.get("/", response_model=List[CourseResponse])
 async def get_courses(service: CourseService = Depends()):
-    return await service.get_courses()
+    courses = await service.get_courses()
+    return [course.to_response() for course in courses]
 
 @router.get("/{course_id}", response_model=CourseResponse)
 async def get_course(course_id: str, service: CourseService = Depends()):
@@ -29,7 +31,8 @@ async def update_course(
     course_id: str,
     course: CourseUpdate,
     service: CourseService = Depends()):
-    return await service.update_course(course_id, course)
+    course = await service.update_course(course_id, course)
+    return course.to_response()
 
 async def task_generate_content(
     course: Course,
