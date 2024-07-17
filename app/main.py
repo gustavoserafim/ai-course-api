@@ -7,16 +7,9 @@ app = FastAPI()
 app.include_router(api_router, prefix="/api")
 app.include_router(websocket.router, tags=["websockets"])
 
-origins = [
-    "http://localhost",
-    "http://localhost:8000",
-    "http://your-domain.com",
-    "http://yduqs-poc-dev.us-east-1.elasticbeanstalk.com"
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=['*'],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
