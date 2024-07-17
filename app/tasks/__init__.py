@@ -13,7 +13,6 @@ async def task_generate_content(
     start_time = time.time() 
 
     try:
-        # create outline
         outline = await generate_outline(course.learning_topics)
         print(outline)
 
@@ -34,8 +33,11 @@ async def task_generate_content(
             "status": "COMPLETED"
         }))
 
-
     except Exception as e:
+        await ws.broadcast(json.dumps({
+            "message": f'We had a problem to generate content for "{course.name}"',
+            "status": "ERROR"
+        }))
         print(f"An error occurred: {e}")
         traceback.print_exc()
     
