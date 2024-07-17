@@ -6,19 +6,17 @@ from app.models.course import Course
 async def generate_outline(outline):
     try:
         prompt = await prompts.convert_outline_prompt(outline)
-        print(prompt)
+        print(f"PROMPT >>>>\n\n{prompt}")
         return await request_text_generation(prompt=prompt)
     except Exception as e:
         print(f"An error occurred: {e}")
         traceback.print_exc()
-        return None
+        raise e
 
 async def generate_content(
     course: Course,
     topic: str = "",
-    subtopic: str = "", 
-    image_quantity: int = 0, 
-    has_video: bool = False):
+    subtopic: str = ""):
 
     assert course is not None, "exception:COURSE_REQUIDED"
     assert topic is not None, "exception:TOPIC_REQUIDED"
@@ -28,10 +26,7 @@ async def generate_content(
         prompt = await prompts.content_prompt(
             course=course,
             topic=topic,
-            subtopic=subtopic,
-            image_quantity=image_quantity,
-            has_video=has_video)
-        print(prompt)
+            subtopic=subtopic)
 
         return await request_text_generation(
             prompt=prompt,
@@ -43,4 +38,4 @@ async def generate_content(
     except Exception as e:
         print(f"An error occurred: {e}")
         traceback.print_exc()
-        return None
+        raise e

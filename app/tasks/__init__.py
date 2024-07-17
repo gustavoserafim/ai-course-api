@@ -2,6 +2,7 @@ import json
 import time
 import traceback
 from app.models.course import Course
+from app.schemas.content import ContentBlock, ContentCreate
 from app.services.content_service import ContentService
 from app.llm.generator import generate_outline, generate_content
 from app.api.endpoints.websocket import manager as ws
@@ -9,33 +10,37 @@ from app.api.endpoints.websocket import manager as ws
 async def task_generate_content(
     course: Course,
     content_service: ContentService) -> None:
-
     start_time = time.time() 
-
     try:
         outline = await generate_outline(course.learning_topics)
-        print(outline)
-
         for section in outline.get('outline', []):
             topic = section.get('topic')
             subtopic_list = section.get('subtopics', [])
             for subtopic in subtopic_list:
-                print(f"Generating content for {topic} - {subtopic}")
-                subtopic_content = await generate_content(
+                print(f"GENERATE CONTENT FOR: {topic} > {subtopic}")
+                content = await generate_content(
                     course=course,
                     topic=topic,
                     subtopic=subtopic)
-                # save_content(subtopic)
+                print(f"CONTENT >>>\n\n {content}")
+                await save_content(
+                    course=course,
+                    topic=topic, 
+                    subtopic=subtopic, 
+                    content=content.get('content_blocks'),
+                    content_service=content_service)
         
-        print("TASK COMPLETED")
         await ws.broadcast(json.dumps({
             "message": f'Content for "{course.name}" generation completed',
             "status": "COMPLETED"
         }))
 
+        print("TASK COMPLETED")
+
     except Exception as e:
         await ws.broadcast(json.dumps({
             "message": f'We had a problem to generate content for "{course.name}"',
+            "details": str(e),
             "status": "ERROR"
         }))
         print(f"An error occurred: {e}")
@@ -45,13 +50,21 @@ async def task_generate_content(
     execution_time = end_time - start_time
     print(f"Execution time: {execution_time:.2f}.")
 
-    # content = ContentCreate(
-    #     course_id=str(course.id),
-    #     name="Generated Content",
-    #     content=[
-    #         ContentBlock(
-    #             type="text", 
-    #             content="This is a generated content block")
-    #     ])
+async def save_content(
+    course: Course,
+    topic: str, 
+    subtopic: str, 
+    content: str,
+    content_service: ContentService) -> None:
 
-    # await content_service.create_content(content)
+    try:
+        content = ContentCreate(
+            course_id=str(course.id),
+            name=f"{topic} > {subtopic}",
+            content=content
+        )
+        await content_service.create_content(content)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        traceback.print_exc()
+        raise e

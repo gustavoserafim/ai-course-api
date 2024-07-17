@@ -34,8 +34,6 @@ async def content_prompt(
     subtopic: str):
 
     output_example = json.dumps({
-        "topic": "Tópico 1",
-        "subtopic": "Sub-tópico 1",
         "content_blocks": [{
             "type": "TEXT",
             "content": "Texto sobre o tópico"
@@ -54,9 +52,6 @@ async def content_prompt(
         vídeo, lista de tópicos. Use os labels: IMAGE, TEXT, VIDEO.
 
         Importante que cada bloco tenha uma continuidade do bloco anterior.
-        
-        No caso de imagens ou videos, quero que o bloco tenha um prompt para a 
-        geração desses conteúdos.
 
         Quero que você escreva em Português do Brasil.
 
@@ -70,6 +65,10 @@ async def content_prompt(
         {output_example}
 
         Não deve aparecer blocos incompletos que possam quebrar o JSON gerado.
+
+        No caso de imagens ou videos, quero que o bloco tenha um prompt para a 
+        geração desses conteúdos. Porem, é importante que você mantenha a estrutura
+        sugerida.
     """
 
     return prompt

@@ -42,3 +42,4 @@ async def request_text_generation(
     except Exception as e:
         print(f"An error occurred: {e}")
         traceback.print_exc()
+        raise e
