@@ -1,70 +1,16 @@
 import json
+from app.models.course import Course
 
-def course_prompt(course: str, subject: str) -> str:
+async def convert_outline_prompt(outline: str) -> str:
     output_example = json.dumps({
-        "course": "Course Name",
-        "subject": "Subject of course",
-        "chapters": [
-            "Chapter 1",
-            "Chapter 2",
-        ]
-    })
-    
-    prompt = f"""
-    Estou montando um módulo para um curso universitário de "{course}", para 
-    matéria de "{subject}" e gostaria que você gerasse para mim uma lista de
-    capitulos que eu devo abordar no curso, sem adicionar comentários ao conteúdo.
-
-    Gostaria que você gerasse pelo menos 15 assuntos, em Português do Brasil.
-
-    Gostaria que o output fosse gerado em JSON. Seguindo o seguinte formato:
-
-    {output_example}
-
-    Tome o cuidado para gerar apenas uma vez essa estrutura.
-
-    É importante que você gere apenas a estrutura no formato que eu estou
-    pedindo. Não há necessidade de explicar o conteúdo gerado.
-    """
-    return prompt
-
-def create_outline_prompt(course: str, subject: str, chapter: str) -> str:
-    output_example = json.dumps({
-        "course": "Course Name",
-        "subject": "Subject of course",
-        "outline": [
-            {
-                "topic": "Tópico 1",
-                "subtopics": [
-                    "Sub-tópico 1",
-                    "Sub-tópico 2",
-                    "Sub-tópico 3",
-                    "Sub-tópico 4",
-                ]
-            }
-        ]
-    })
-    
-    prompt = f"""
-    Estou montando um módulo para um curso universitário de "{course}", para 
-    matéria de "{subject}" mais especificamente sobre o capitulo de "{chapter}"
-    e gostaria que você gerasse para mim um outline em Português do Brasil sobre 
-    o que seria interessante abordar, sem adicionar comentários ao conteúdo.
-
-    Gostaria que você gerasse pelo menos 10 tópicos, e cada tópico deve ter
-    pelo menos 4 sub-tópicos.
-
-    Gostaria que o output fosse gerado em JSON. Seguindo o seguinte formato:
-
-    {output_example}
-    """
-    return prompt
-
-def convert_outline_prompt(outline: str) -> str:
-    output_example = json.dumps({
-        "content_blocks": [{
-            "type": "TEXT",
-            "content": "Texto sobre o tópico"
+        "outline": [{
+            "topic": "Tópico 1",
+            "subtopics": [
+                "Sub-tópico 1",
+                "Sub-tópico 2",
+                "Sub-tópico 3",
+                "Sub-tópico 4",
+            ]
         }]
     })
     
@@ -73,6 +19,8 @@ def convert_outline_prompt(outline: str) -> str:
 
     {outline}
 
+    O primeiro nivel do outline é o tópico e o segundo nivel é o sub-tópico.
+
     Gostaria que você convertesse esse outline para o seguinte formato, sem 
     adicionar comentários ao conteúdo:
 
@@ -80,47 +28,33 @@ def convert_outline_prompt(outline: str) -> str:
     """
     return prompt
 
-
-def content_prompt(
-    course: str,
-    subject: str,
+async def content_prompt(
+    course: Course,
     topic: str,
-    subtopic: str,
-    image_quantity: int = 2, 
-    has_video: bool = False):
+    subtopic: str):
 
     output_example = json.dumps({
-      "content_blocks": [{
-          "type": "TEXT",
-          "content": "Texto sobre o tópico"
-      }]
+        "topic": "Tópico 1",
+        "subtopic": "Sub-tópico 1",
+        "content_blocks": [{
+            "type": "TEXT",
+            "content": "Texto sobre o tópico"
+        }]
     })
-
-    prompt_image = image_quantity \
-        and f"Cada aula deve ter pelo menos {image_quantity} blocos imagens" \
-        or ""
-      
-    prompt_video = has_video \
-        and "Cada aula deve ter pelo menos um bloco de vídeo" \
-        or ""
       
     prompt = f"""
-        Crie um conteúdo educacional sobre o curso para um curso universitário 
-        de "{course}", para matéria "{subject}" e gostaria que você gerasse para 
-        mim o conteúdo completo da aula "{topic}" mais especificamente sobre "{subtopic}",
-        sem adicionar comentários ao conteúdo.
+        Estou elaborando o conteúdo para um curso universitário 
+        de "{course.name}" e gostaria que você gerasse para mim o conteúdo 
+        academico completo da aula "{topic}" mais especificamente 
+        sobre "{subtopic}", sem adicionar comentários ao conteúdo.
 
         Você deve gerar esse conteúdo em blocos.
 
         Especifique também o tipo de cada bloco: texto, imagem, 
-        vídeo, lista de tópicos. Use os labels: IMAGE, TEXT, VIDEO, LIST.
+        vídeo, lista de tópicos. Use os labels: IMAGE, TEXT, VIDEO.
 
         Importante que cada bloco tenha uma continuidade do bloco anterior.
-
-        {prompt_image}
-
-        {prompt_video}
-
+        
         No caso de imagens ou videos, quero que o bloco tenha um prompt para a 
         geração desses conteúdos.
 
@@ -128,9 +62,14 @@ def content_prompt(
 
         O texto deve ter pelo menos 2000 palavras.
 
+        Importante que o texto seja coeso e coerente e que tenha uma estrutura
+        lógica com começo, meio e fim.
+
         Gostaria que o output fosse gerado em JSON. Seguindo o seguinte formato:
 
         {output_example}
+
+        Não deve aparecer blocos incompletos que possam quebrar o JSON gerado.
     """
 
     return prompt

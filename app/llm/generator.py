@@ -1,57 +1,46 @@
-import json
-import app.llm.helpers as helpers
+import traceback
 import app.llm.prompts as prompts
-from gradio_client import Client
-from app.core.config import settings
+from app.llm.tela import request_text_generation
 from app.models.course import Course
 
-def initialize_llm_client(model: str):
+async def generate_outline(outline):
     try:
-        client = Client(model)
-        print("LLM client initialized")
-        return client
+        prompt = await prompts.convert_outline_prompt(outline)
+        print(prompt)
+        return await request_text_generation(prompt=prompt)
     except Exception as e:
-        if settings.DEBUG:
-            print(f"Error initializing client: {e}")
+        print(f"An error occurred: {e}")
+        traceback.print_exc()
         return None
-
-client = initialize_llm_client(settings.LLM_API_URL)
 
 async def generate_content(
     course: Course,
+    topic: str = "",
+    subtopic: str = "", 
     image_quantity: int = 0, 
-    has_video: bool = False,
-    callback=None) -> None:
+    has_video: bool = False):
 
     assert course is not None, "exception:COURSE_REQUIDED"
+    assert topic is not None, "exception:TOPIC_REQUIDED"
+    assert subtopic is not None, "exception:SUBTOPIC_REQUIDED"
 
     try:
-        client = Client(settings.LLM_API_URL)
-        prompt = prompts.content_prompt(
+        prompt = await prompts.content_prompt(
             course=course,
-            subject=subject,
             topic=topic,
             subtopic=subtopic,
             image_quantity=image_quantity,
-            has_video=has_video
-        )
+            has_video=has_video)
+        print(prompt)
 
-        if settings.DEBUG: helpers.input_stats("generate_content", prompt)
-
-        response = client.predict(
-            message=prompt,
-            history="",
+        return await request_text_generation(
+            prompt=prompt,
+            max_new_tokens=2000,
             temperature=0.3,
-            max_new_tokens=10000,
-            api_name='/predict')
-
-        if len(response) > 0:
-            if settings.DEBUG: helpers.output_stats("generate_content", response)
-            if callback:
-                callback(json.loads(response))
-            return json.loads(response)
-        
-        return {}
+            top_p=0.95,
+            repetition_penalty=1.2)
 
     except Exception as e:
         print(f"An error occurred: {e}")
+        traceback.print_exc()
+        return None

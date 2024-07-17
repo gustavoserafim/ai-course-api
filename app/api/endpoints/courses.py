@@ -1,9 +1,6 @@
-import asyncio
 from typing import List
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
-from app import tasks
-from app.models.course import Course
-from app.schemas.content import ContentBlock, ContentCreate
+from app.tasks import task_generate_content
 from app.schemas.course import CourseCreate, CourseResponse, CourseUpdate
 from app.services.content_service import ContentService
 from app.services.course_service import CourseService
@@ -35,27 +32,9 @@ async def update_course(
     course = await service.update_course(course_id, course)
     return course.to_response()
 
-async def task_generate_content(
-    course: Course,
-    content_service: ContentService) -> None:
-
-    await asyncio.sleep(5)
-
-    content = ContentCreate(
-        course_id=str(course.id),
-        name="Generated Content",
-        content=[
-            ContentBlock(
-                type="text", 
-                content="This is a generated content block")
-        ])
-
-    await content_service.create_content(content)
-    print("CONCLUIU A GERAÇÃO")
-
-@router.post("/{course_id}/generate-content", response_model=None)
+@router.post("/{course_id}/generate-content")
 async def generate_content(
-    course_id: str, 
+    course_id: str,
     background_tasks: BackgroundTasks,
     course_service: CourseService = Depends(),
     content_service: ContentService = Depends()):
@@ -64,8 +43,8 @@ async def generate_content(
     course = await course_service.get_course(course_id)
 
     background_tasks.add_task(
-        tasks.task_generate_content, 
-        course=course, 
+        task_generate_content,
+        course=course,
         content_service=content_service)
 
     return {"status": "Content generation started"}
