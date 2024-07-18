@@ -5,8 +5,9 @@ from bson import ObjectId
 class Content(BaseModel):
     id: ObjectId = Field(default_factory=ObjectId, alias="_id")
     course_id: ObjectId
+    module_id: ObjectId
     name: str
-    content: Dict[str, Any]
+    content: str
 
     class Config:
         arbitrary_types_allowed = True
