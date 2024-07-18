@@ -32,6 +32,10 @@ class Course(BaseModel):
     basic_bibliography: Optional[str] = None
     complementary_bibliography: Optional[str] = None
     status: CourseStatusEnum = CourseStatusEnum.INITIAL
+    generated_description: Optional[str] = None
+    generated_propose: Optional[str] = None
+    generated_introduction: Optional[str] = None
+    generated_conclusion: Optional[str] = None
 
     class Config:
         arbitrary_types_allowed = True
