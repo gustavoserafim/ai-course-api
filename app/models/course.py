@@ -1,7 +1,15 @@
+from enum import Enum
 from typing import Optional
 from pydantic import BaseModel, Field
 from bson import ObjectId
 from app.schemas.course import CourseResponse
+
+
+class CourseStatusEnum(str, Enum):
+    INITIAL = "INITIAL"
+    PEDAGOGIC_REVIEW = "PEDAGOGIC_REVIEW"
+    QA_REVIEW = "QA_REVIEW"
+    PUBLISHED = "PUBLISHED"
 
 class Course(BaseModel):
     id: ObjectId = Field(default_factory=ObjectId, alias="_id", description="Identificador único para o curso")
@@ -23,6 +31,7 @@ class Course(BaseModel):
     assessment_procedures: Optional[str] = None
     basic_bibliography: Optional[str] = None
     complementary_bibliography: Optional[str] = None
+    status: CourseStatusEnum = CourseStatusEnum.INITIAL
 
     class Config:
         arbitrary_types_allowed = True
@@ -48,5 +57,6 @@ class Course(BaseModel):
             "assessment_procedures": self.assessment_procedures,
             "basic_bibliography": self.basic_bibliography,
             "complementary_bibliography": self.complementary_bibliography,
+            "status": self.status
         }
         return CourseResponse(**data)

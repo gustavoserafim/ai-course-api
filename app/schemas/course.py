@@ -1,5 +1,13 @@
+from enum import Enum
 from typing import Optional
 from pydantic import BaseModel, Field
+
+
+class CourseStatusEnum(str, Enum):
+    INITIAL = "INITIAL"
+    PEDAGOGIC_REVIEW = "PEDAGOGIC_REVIEW"
+    QA_REVIEW = "QA_REVIEW"
+    PUBLISHED = "PUBLISHED"
 
 class CourseBase(BaseModel):
     name: str = Field(..., description="Nome do curso")
@@ -20,12 +28,13 @@ class CourseBase(BaseModel):
     assessment_procedures: Optional[str] = Field(None, description="Procedimentos de avaliação")
     basic_bibliography: Optional[str] = Field(None, description="Bibliografia básica do curso")
     complementary_bibliography: Optional[str] = Field(None, description="Bibliografia complementar do curso")
+    status: Optional[CourseStatusEnum] = Field(CourseStatusEnum.INITIAL, description="Status do curso")
 
 class CourseCreate(CourseBase):
     pass
 
 class CourseUpdate(CourseBase):
-    pass
+    name: Optional[str] = None
 
 class CourseResponse(CourseBase):
     id: str
