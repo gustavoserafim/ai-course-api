@@ -29,6 +29,10 @@ class CourseBase(BaseModel):
     basic_bibliography: Optional[str] = Field(None, description="Bibliografia básica do curso")
     complementary_bibliography: Optional[str] = Field(None, description="Bibliografia complementar do curso")
     status: Optional[CourseStatusEnum] = Field(CourseStatusEnum.INITIAL, description="Status do curso")
+    generated_description: Optional[str] = None
+    generated_propose: Optional[str] = None
+    generated_introduction: Optional[str] = None
+    generated_conclusion: Optional[str] = None
 
 class CourseCreate(CourseBase):
     pass

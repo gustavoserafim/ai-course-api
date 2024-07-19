@@ -72,3 +72,36 @@ async def content_prompt(
     """
 
     return prompt
+
+
+async def course_detail_prompt(course: Course) -> str:
+    output_example = json.dumps({
+        "data": {
+            "generated_description": "description",
+            "generated_propose": "propose",
+            "generated_introduction": "introduction",
+            "generated_conclusion": "conclusion",
+        }
+    })
+
+    prompt = f"""
+        Estou elaborando o conteúdo para um curso universitário de "{course.name}", 
+        no qual eu desejo abordar os seguintes tópicos:
+
+        {course.learning_topics}
+
+        Gostaria que você gerasse para mim um conteúdo de apresentação do curso 
+        para os alunos que vão cursa-lo com as seguintes informações, sem adicionar 
+        comentários ao conteúdo:
+
+        * Descrição do Curso
+        * Propósito do Curso
+        * Introdução do Curso
+        * Considerações finais
+
+        Gostaria que o output fosse gerado em JSON, seguindo o formato:
+
+        {output_example}
+    """
+
+    return prompt

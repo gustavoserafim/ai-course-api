@@ -2,10 +2,41 @@ import json
 import time
 import traceback
 from app.models.course import Course
-from app.schemas.content import ContentBlock, ContentCreate
+from app.schemas.content import ContentCreate
+from app.schemas.course import CourseUpdate
 from app.services.content_service import ContentService
-from app.llm.generator import generate_outline, generate_content
+from app.llm.generator import generate_course_detail, generate_outline, generate_content
 from app.api.endpoints.websocket import manager as ws
+from app.services.course_service import CourseService
+
+async def task_generate_course_detail(
+    course: Course,
+    course_service: CourseService) -> None:
+    print("START: task_generate_course_detail")
+
+    start_time = time.time() 
+    try:
+        course_details = await generate_course_detail(course)
+        details = CourseUpdate(**course_details.get("data"))
+        await course_service.update_course(course.id, details)
+        await ws.broadcast(json.dumps({
+            "message": f'Details for course "{course.name}" generated',
+            "status": "COMPLETED"
+        }))
+    except Exception as e:
+        await ws.broadcast(json.dumps({
+            "message": f'We had a problem to generate details for "{course.name}"',
+            "details": str(e),
+            "status": "ERROR"
+        }))
+        print(f"An error occurred: {e}")
+        traceback.print_exc()
+        raise e
+
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print("COMPLETED: task_generate_course_detail")
+    print(f"Execution time: {execution_time:.2f}.")
 
 async def task_generate_content(
     course: Course,
