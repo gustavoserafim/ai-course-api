@@ -39,3 +39,21 @@ async def generate_content(
         print(f"An error occurred: {e}")
         traceback.print_exc()
         raise e
+
+async def generate_course_detail(course: Course):
+    assert course is not None, "exception:COURSE_REQUIDED"
+    try:
+        prompt = await prompts.course_detail_prompt(
+            course=course)
+
+        return await request_text_generation(
+            prompt=prompt,
+            max_new_tokens=1000,
+            temperature=0.3,
+            top_p=0.95,
+            repetition_penalty=1.2)
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        traceback.print_exc()
+        raise e
