@@ -1,6 +1,11 @@
 from typing import List
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
-from app.tasks import task_generate_content, task_generate_course_detail
+from app.services.module_service import ModuleService
+from app.tasks import (
+  task_generate_content, 
+  task_generate_course_detail, 
+  task_generate_course_modules
+)
 from app.schemas.course import CourseCreate, CourseResponse, CourseUpdate
 from app.services.content_service import ContentService
 from app.services.course_service import CourseService
@@ -59,5 +64,19 @@ async def generate_course_detail(
         task_generate_course_detail,
         course=course,
         course_service=course_service)
+
+    return {"status": "TASK_ENQUEUED"}
+
+@router.post("/{course_id}/generate-modules")
+async def generate_course_modules(
+    course_id: str,
+    background_tasks: BackgroundTasks,
+    course_service: CourseService = Depends(),
+    module_service: ModuleService = Depends()):
+    course = await course_service.get_course(course_id)
+    background_tasks.add_task(
+        task_generate_course_modules,
+        course=course,
+        module_service=module_service)
 
     return {"status": "TASK_ENQUEUED"}
