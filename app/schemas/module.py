@@ -19,6 +19,7 @@ class ModuleUpdate(ModuleBase):
 
 class ModuleResponse(ModuleBase):
     id: str
+    course_id: str
 
     class Config:
         populate_by_name = True

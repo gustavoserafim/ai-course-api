@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.schemas.module import ModuleCreate, ModuleResponse, ModuleUpdate
@@ -13,8 +13,10 @@ async def create_module(module: ModuleCreate, service: ModuleService = Depends()
     return module.to_response()
 
 @router.get("/", response_model=List[ModuleResponse])
-async def get_modules(service: ModuleService = Depends()):
-    modules = await service.get_modules()
+async def get_modules(
+    course_id: Optional[str] = None, 
+    service: ModuleService = Depends()):
+    modules = await service.get_modules(course_id)
     return [module.to_response() for module in modules]
 
 @router.get("/{module_id}", response_model=ModuleResponse)
