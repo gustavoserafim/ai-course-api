@@ -4,10 +4,12 @@ import traceback
 from app.models.course import Course
 from app.schemas.content import ContentCreate
 from app.schemas.course import CourseUpdate
+from app.schemas.module import ModuleCreate
 from app.services.content_service import ContentService
-from app.llm.generator import generate_course_detail, generate_outline, generate_content
+from app.llm.generator import generate_course_detail, generate_course_modules, generate_outline, generate_content
 from app.api.endpoints.websocket import manager as ws
 from app.services.course_service import CourseService
+from app.services.module_service import ModuleService
 
 async def task_generate_course_detail(
     course: Course,
@@ -99,3 +101,38 @@ async def save_content(
         print(f"An error occurred: {e}")
         traceback.print_exc()
         raise e
+
+async def task_generate_course_modules(
+    course: Course,
+    module_service: ModuleService) -> None:
+    print("START: task_generate_course_modules")
+
+    start_time = time.time() 
+    try:
+        course_details = await generate_course_modules(course)
+        for module, objective in course_details.get("data").items():
+
+            await module_service.create_module(ModuleCreate(**{
+                "course_id": course.id,
+                "name": module,
+                "generated_objective": objective
+            }))
+
+        await ws.broadcast(json.dumps({
+            "message": f'Modules of course "{course.name}" generated',
+            "status": "COMPLETED"
+        }))
+    except Exception as e:
+        await ws.broadcast(json.dumps({
+            "message": f'We had a problem to generate modules for course "{course.name}"',
+            "details": str(e),
+            "status": "ERROR"
+        }))
+        print(f"An error occurred: {e}")
+        traceback.print_exc()
+        raise e
+
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print("COMPLETED: task_generate_course_modules")
+    print(f"Execution time: {execution_time:.2f}.")

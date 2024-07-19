@@ -3,7 +3,7 @@ from bson import ObjectId
 from pydantic import BaseModel, Field
 
 class ModuleBase(BaseModel):
-    course_id: str
+    course_id: ObjectId
     name: str
     generated_objective: Optional[str] = None
     
@@ -15,7 +15,7 @@ class ModuleCreate(ModuleBase):
 
 class ModuleUpdate(ModuleBase):
     name: Optional[str] = None
-    course_id: Optional[str] = None
+    course_id: Optional[ObjectId] = None
 
 class ModuleResponse(ModuleBase):
     id: str

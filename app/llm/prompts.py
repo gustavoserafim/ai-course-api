@@ -28,6 +28,36 @@ async def convert_outline_prompt(outline: str) -> str:
     """
     return prompt
 
+async def module_objectives_prompt(course: Course) -> str:
+
+    output_example = json.dumps({
+        "data": {
+            "module 1": "objective of module 1",
+            "module 2": "objective of module 2",
+        }
+    })
+    
+    prompt = f"""
+    Eu tenho o seguinte outline:
+
+    {course.learning_topics}
+
+    O primeiro nivel do outline é o nome do módulo e o segundo nível são os 
+    assuntos que serão abordados nesse tópico.
+        
+    Gostaria que você gerasse para mim uma estrutura apenas com o nome do módulo 
+    e escreva um objetivo para esse módulo baseado nos assuntos que serão abordados.
+
+    No output você deve omitir as marcações númericas.
+
+    Escreva a resposta em português do Brasil.
+
+    Apresente a resposta no seguinte formato, sem adicionar comentários ao conteúdo:
+
+    {output_example}
+    """
+    return prompt
+
 async def content_prompt(
     course: Course,
     topic: str,
