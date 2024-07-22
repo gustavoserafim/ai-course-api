@@ -100,3 +100,33 @@ async def generate_course_modules(course: Course):
         print(f"An error occurred: {e}")
         traceback.print_exc()
         raise e
+
+async def generate_module_lesson(
+    course_name: str,
+    module_name: str,
+    lesson_name: str):
+    
+    assert all([
+        course_name, 
+        module_name, 
+        lesson_name
+    ]), "exception:COURSE_REQUIDED"
+
+    try:
+        prompt = await prompts.lesson_prompt(
+            course_name, module_name, lesson_name)
+        
+        print(prompt)
+
+        return await request_text_generation(
+            prompt=prompt,
+            max_new_tokens=5000,
+            temperature=0.3,
+            top_p=0.95,
+            repetition_penalty=1.2,
+            output="text")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        traceback.print_exc()
+        raise e
