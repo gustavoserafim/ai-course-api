@@ -72,7 +72,7 @@ async def module_objectives_prompt(course: Course) -> str:
     """
     return prompt
 
-async def content_prompt(
+async def lesson_prompt(
     course: Course,
     topic: str,
     subtopic: str

@@ -38,6 +38,7 @@ class Course(BaseModel):
     generated_conclusion: Optional[str] = None
 
     class Config:
+        json_encoders = {ObjectId: str}
         arbitrary_types_allowed = True
     
     def to_response(self):

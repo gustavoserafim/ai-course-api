@@ -1,9 +1,8 @@
 from typing import Optional
-from bson import ObjectId
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 class ModuleBase(BaseModel):
-    course_id: ObjectId
+    course_id: str
     name: str
     generated_objective: Optional[str] = None
     
@@ -15,7 +14,7 @@ class ModuleCreate(ModuleBase):
 
 class ModuleUpdate(ModuleBase):
     name: Optional[str] = None
-    course_id: Optional[ObjectId] = None
+    course_id: Optional[str] = None
 
 class ModuleResponse(ModuleBase):
     id: str
