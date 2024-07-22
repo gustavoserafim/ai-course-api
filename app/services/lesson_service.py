@@ -22,9 +22,14 @@ class LessonService:
         print(lesson_dict)
         return Lesson(**lesson_dict)
 
-    async def list_lesson(self) -> List[Lesson]:
+    async def list_lesson(self, course_id: str = None, module_id: str = None) -> List[Lesson]:
         lessons = []
-        async for lesson in self.collection.find():
+        query = {}
+        if course_id:
+            query['course_id'] = ObjectId(course_id)
+        if module_id:
+            query['module_id'] = ObjectId(module_id)
+        async for lesson in self.collection.find(query):
             lessons.append(Lesson(**lesson))
         return lessons
 
