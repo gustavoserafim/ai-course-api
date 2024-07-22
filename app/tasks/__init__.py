@@ -123,12 +123,12 @@ async def task_generate_course_modules(
     start_time = time.time() 
     try:
         course_details = await generate_course_modules(course)
-        for module, objective in course_details.get("data").items():
-
+        for module in course_details.get("data"):
             await module_service.create_module(ModuleCreate(**{
-                "course_id": course.id,
-                "name": module,
-                "generated_objective": objective
+                "course_id": str(course.id),
+                "name": module['name'],
+                "generated_objective": module['objective'],
+                "subtopics": module['subtopics']
             }))
 
         await ws.broadcast(json.dumps({

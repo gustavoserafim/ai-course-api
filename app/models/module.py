@@ -10,6 +10,7 @@ class Module(BaseModel):
     course_id: ObjectId = Field(default_factory=ObjectId, alias="course_id")
     name: str = Field(description="Nome do módulo")
     generated_objective: Optional[str] = None
+    subtopics: Optional[list[str]] = []
 
     class Config:
         json_encoders = {ObjectId: str}
