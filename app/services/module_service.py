@@ -24,7 +24,6 @@ class ModuleService:
         query = {}
         if course_id:
             query['course_id'] = ObjectId(course_id)
-        print(query)
         async for module in self.collection.find(query):
             module['id'] = str(module['_id'])
             modules.append(Module(**module))
