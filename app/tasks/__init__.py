@@ -2,11 +2,11 @@ import json
 import time
 import traceback
 from app.models.course import Course
-from app.schemas.content import ContentCreate
+from app.schemas.lesson import LessonCreate
 from app.schemas.course import CourseUpdate
 from app.schemas.module import ModuleCreate
-from app.services.content_service import ContentService
-from app.llm.generator import generate_course_detail, generate_course_modules, generate_outline, generate_content
+from app.services.lesson_service import LessonService
+from app.llm.generator import generate_course_detail, generate_course_modules, generate_outline, generate_lesson
 from app.api.endpoints.websocket import manager as ws
 from app.services.course_service import CourseService
 from app.services.module_service import ModuleService
@@ -48,13 +48,13 @@ async def task_generate_course_detail(
         print("COMPLETED: task_generate_course_detail")
         print(f"Execution time: {execution_time:.2f}.")
 
-async def task_generate_content(
+async def task_generate_lesson(
     course: Course,
-    content_service: ContentService
+    lesson_service: LessonService
 ) -> None:
     start_time = time.time() 
 
-    with tracer.start_as_current_span("task_generate_content") as span:
+    with tracer.start_as_current_span("task_generate_lesson") as span:
         span.set_attribute("Course", str(course.name))
 
         try:
@@ -64,20 +64,20 @@ async def task_generate_content(
                 subtopic_list = section.get('subtopics', [])
                 for subtopic in subtopic_list:
                     print(f"GENERATE CONTENT FOR: {topic} > {subtopic}")
-                    content = await generate_content(
+                    lesson = await generate_lesson(
                         course=course,
                         topic=topic,
                         subtopic=subtopic)
-                    print(f"CONTENT >>>\n\n {content}")
-                    await save_content(
+                    print(f"CONTENT >>>\n\n {lesson}")
+                    await save_lesson(
                         course=course,
                         topic=topic, 
                         subtopic=subtopic, 
-                        content=content.get('content_blocks'),
-                        content_service=content_service)
+                        lesson=lesson.get('lesson_blocks'),
+                        lesson_service=lesson_service)
             
             await ws.broadcast(json.dumps({
-                "message": f'Content for "{course.name}" generation completed',
+                "message": f'Lesson for "{course.name}" generation completed',
                 "status": "COMPLETED"
             }))
 
@@ -85,7 +85,7 @@ async def task_generate_content(
 
         except Exception as e:
             await ws.broadcast(json.dumps({
-                "message": f'We had a problem to generate content for "{course.name}"',
+                "message": f'We had a problem to generate lesson for "{course.name}"',
                 "details": str(e),
                 "status": "ERROR"
             }))
@@ -96,20 +96,20 @@ async def task_generate_content(
         execution_time = end_time - start_time
         print(f"Execution time: {execution_time:.2f}.")
 
-async def save_content(
+async def save_lesson(
     course: Course,
     topic: str, 
     subtopic: str, 
-    content: str,
-    content_service: ContentService) -> None:
+    lesson: str,
+    lesson_service: LessonService) -> None:
 
     try:
-        content = ContentCreate(
+        lesson = LessonCreate(
             course_id=str(course.id),
             name=f"{topic} > {subtopic}",
-            content=content
+            lesson=lesson
         )
-        await content_service.create_content(content)
+        await lesson_service.create_lesson(lesson)
     except Exception as e:
         print(f"An error occurred: {e}")
         traceback.print_exc()

@@ -25,7 +25,7 @@ async def generate_outline(
             traceback.print_exc()
             raise e
 
-async def generate_content(
+async def generate_lesson(
     course: Course,
     topic: str = "",
     subtopic: str = ""

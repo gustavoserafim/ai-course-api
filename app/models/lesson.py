@@ -1,9 +1,9 @@
 from pydantic import BaseModel, Field
 from bson import ObjectId
 
-from app.schemas.content import ContentResponse
+from app.schemas.lesson import LessonResponse
 
-class Content(BaseModel):
+class Lesson(BaseModel):
     id: ObjectId = Field(default_factory=ObjectId, alias="_id")
     course_id: ObjectId = Field(default_factory=ObjectId, alias="course_id")
     module_id: ObjectId = Field(default_factory=ObjectId, alias="module_id")
@@ -22,4 +22,4 @@ class Content(BaseModel):
             "name": self.name,
             "content": self.content
         }
-        return ContentResponse(**data)
+        return LessonResponse(**data)
