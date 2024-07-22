@@ -10,7 +10,11 @@ from app.schemas.course import CourseCreate, CourseResponse, CourseUpdate
 from app.services.content_service import ContentService
 from app.services.course_service import CourseService
 
+from opentelemetry import trace
+
 router = APIRouter()
+
+tracer = trace.get_tracer(__name__)
 
 @router.post("/", response_model=CourseResponse)
 async def create_course(course: CourseCreate, service: CourseService = Depends()):
@@ -42,31 +46,38 @@ async def generate_content(
     course_id: str,
     background_tasks: BackgroundTasks,
     course_service: CourseService = Depends(),
-    content_service: ContentService = Depends()):
+    content_service: ContentService = Depends()
+):
+    with tracer.start_as_current_span("generate_content") as span:
+        span.set_attribute("course_id", str(course_id))
 
-    print("STARTING GENERATION")
-    course = await course_service.get_course(course_id)
+        print("STARTING GENERATION")
+        course = await course_service.get_course(course_id)
 
-    background_tasks.add_task(
-        task_generate_content,
-        course=course,
-        content_service=content_service)
+        background_tasks.add_task(
+            task_generate_content,
+            course=course,
+            content_service=content_service)
 
-    return {"status": "TASK_ENQUEUED"}
+        return {"status": "TASK_ENQUEUED"}
 
 @router.post("/{course_id}/generate-detail")
 async def generate_course_detail(
     course_id: str,
     background_tasks: BackgroundTasks,
-    course_service: CourseService = Depends()):
-    course = await course_service.get_course(course_id)
-    background_tasks.add_task(
-        task_generate_course_detail,
-        course=course,
-        course_service=course_service)
+    course_service: CourseService = Depends()
+):
+    with tracer.start_as_current_span("generate_course_detail") as span:
+        span.set_attribute("course_id", str(course_id))
+
+        course = await course_service.get_course(course_id)
+        background_tasks.add_task(
+            task_generate_course_detail,
+            course=course,
+            course_service=course_service)
 
     return {"status": "TASK_ENQUEUED"}
-
+    
 @router.post("/{course_id}/generate-modules")
 async def generate_course_modules(
     course_id: str,
