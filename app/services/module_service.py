@@ -14,9 +14,9 @@ class ModuleService:
 
     async def create_module(self, module_data: ModuleCreate) -> Module:
         module_dict = module_data.dict()
+        module_dict['course_id'] = ObjectId(module_dict['course_id'])
         result = await self.collection.insert_one(module_dict)
         module_dict['id'] = str(result.inserted_id)
-        module_dict['course_id'] = ObjectId(module_dict['course_id'])
         return Module(**module_dict)
 
     async def get_modules(self, course_id: Optional[str] = None) -> List[Module]:

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from app.schemas.lesson import LessonCreate, LessonResponse, LessonUpdate
 from app.services.lesson_service import LessonService
@@ -12,8 +12,11 @@ async def create_lesson(lesson: LessonCreate, service: LessonService = Depends()
     return lesson.to_response()
 
 @router.get("/", response_model=List[LessonResponse])
-async def get_lessons(service: LessonService = Depends()):
-    lesson_list = await service.list_lesson()
+async def get_lessons(
+    course_id: Optional[str] = None,
+    module_id: Optional[str] = None,
+    service: LessonService = Depends()):
+    lesson_list = await service.list_lesson(course_id, module_id)
     return [lesson.to_response() for lesson in lesson_list]
 
 @router.get("/{lesson_id}", response_model=LessonResponse)
