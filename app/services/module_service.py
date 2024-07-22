@@ -31,9 +31,9 @@ class ModuleService:
 
     async def get_module(self, module_id: str) -> Module:
         module = await self.collection.find_one({"_id": ObjectId(module_id)})
-        module['id'] = str(module['_id'])
-        module['course_id'] = ObjectId(module['course_id'])
         if module:
+            module['id'] = str(module['_id'])
+            module['course_id'] = ObjectId(module['course_id'])
             return Module(**module)
         return None
 
@@ -45,6 +45,6 @@ class ModuleService:
         updated_module['course_id'] = ObjectId(updated_module['course_id'])
         return Module(**updated_module)
 
-    async def delete_module(self, content_id: str) -> bool:
-        result = await self.collection.delete_one({"_id": ObjectId(content_id)})
+    async def delete_module(self, module_id: str) -> bool:
+        result = await self.collection.delete_one({"_id": ObjectId(module_id)})
         return result.deleted_count == 1

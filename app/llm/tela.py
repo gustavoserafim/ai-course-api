@@ -13,7 +13,8 @@ async def request_text_generation(
     max_new_tokens=2000,
     temperature=0.1,
     top_p=0.95,
-    repetition_penalty=1.2):
+    repetition_penalty=1.2,
+    output='json'):
 
     with tracer.start_as_current_span("request_text_generation") as span:
         span.set_attribute("prompt", str(prompt))
@@ -69,12 +70,18 @@ async def request_text_generation(
                     cleaned_result = re.sub(r"<s>\[INST\].*?\[/INST\]", "", result, flags=re.DOTALL)
                     cleaned_result = re.sub(r"<\/s>", "", cleaned_result, flags=re.DOTALL)
                     req_span.set_attribute("cleaned_result", str(cleaned_result))
-                    
-                    result_json = json.loads(cleaned_result)
-                    req_span.set_attribute("result_json", str(result_json))
 
+                    print(cleaned_result)
+
+                    if output == 'json': 
+                        result_ = json.loads(cleaned_result)
+                    else:
+                        result_ = cleaned_result
+
+                    req_span.set_attribute("result_json", str(result_))
                     span.set_status(trace.StatusCode.OK)
-                    return result_json
+                    return result_
+
         except Exception as e:
             span.set_status(trace.StatusCode.ERROR)
 

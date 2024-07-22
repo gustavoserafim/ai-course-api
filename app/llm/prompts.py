@@ -45,10 +45,14 @@ async def convert_outline_prompt(
 async def module_objectives_prompt(course: Course) -> str:
 
     output_example = json.dumps({
-        "data": {
-            "module 1": "objective of module 1",
-            "module 2": "objective of module 2",
-        }
+        "data": [{
+            "name": "module name",
+            "objective": "generated objective of module",
+            "subtopics": [
+                "subtopic 1",
+                "subtopic 2",
+            ]
+        }]
     })
     
     prompt = f"""
@@ -57,69 +61,53 @@ async def module_objectives_prompt(course: Course) -> str:
     {course.learning_topics}
 
     O primeiro nivel do outline é o nome do módulo e o segundo nível são os 
-    assuntos que serão abordados nesse tópico.
+    nomes das aulas que serão abordados em cada tópico.
         
-    Gostaria que você gerasse para mim uma estrutura apenas com o nome do módulo 
-    e escreva um objetivo para esse módulo baseado nos assuntos que serão abordados.
+    Gostaria que você gerasse para mim uma estrutura, seguindo o seguinte 
+    formato JSON, sem adicionar comentários ao conteúdo:
+     
+    {output_example}
+
+    Observe que haverá apenas um objeto para o primeiro nível do outline.
+
+    Os subtopicos estarão dentro da lista de subtópicos na estrutura sugerida.
+
+    Escreva um objetivo para cada módulo baseado nos assuntos que serão abordados.
 
     No output você deve omitir as marcações númericas.
 
     Escreva a resposta em português do Brasil.
-
-    Apresente a resposta no seguinte formato, sem adicionar comentários ao conteúdo:
-
-    {output_example}
     """
+
     return prompt
 
 async def lesson_prompt(
-    course: Course,
-    topic: str,
-    subtopic: str
-):
+    course_name: str,
+    module_name: str,
+    lesson_name: str):
+
     with tracer.start_as_current_span("content_prompt") as span:
-        span.set_attribute("Course", str(course.name))
-        span.set_attribute("topic", str(topic))
-        span.set_attribute("subtopic", str(subtopic))
-
-        output_example = json.dumps({
-            "content_blocks": [{
-                "type": "TEXT",
-                "content": "Texto sobre o tópico"
-            }]
-        })
-
-        span.set_attribute("output_example", str(output_example))
+        span.set_attribute("course_name", str(course_name))
+        span.set_attribute("module_name", str(module_name))
+        span.set_attribute("lesson_name", str(lesson_name))
         
         prompt = f"""
             Estou elaborando o conteúdo para um curso universitário 
-            de "{course.name}" e gostaria que você gerasse para mim o conteúdo 
-            academico completo da aula "{topic}" mais especificamente 
-            sobre "{subtopic}", sem adicionar comentários ao conteúdo.
-
-            Você deve gerar esse conteúdo em blocos.
-
-            Especifique também o tipo de cada bloco: texto, imagem, 
-            vídeo, lista de tópicos. Use os labels: IMAGE, TEXT, VIDEO.
-
-            Importante que cada bloco tenha uma continuidade do bloco anterior.
+            de "{course_name}" e gostaria que você escreva para mim o conteúdo 
+            academico completo da aula "{module_name}" mais especificamente 
+            sobre "{lesson_name}", sem adicionar comentários ao conteúdo.
 
             Quero que você escreva em Português do Brasil.
 
-            O texto deve ter pelo menos 2000 palavras.
+            O texto deve ter pelo menos 3000 palavras.
+
+            Quero que você escreva o conteúdo e não apenas uma estrutura de tópicos
+            e subtópicos.
 
             Importante que o texto seja coeso e coerente e que tenha uma estrutura
             lógica com começo, meio e fim.
 
-            Gostaria que o output fosse gerado em JSON. Seguindo o seguinte formato:
-
-            {output_example}
-
-            Não deve aparecer blocos incompletos que possam quebrar o JSON gerado.
-
-            No caso de imagens ou videos, quero que o bloco tenha um prompt para a 
-            geração desses conteúdos. Porem, é importante que você mantenha a estrutura
-            sugerida.
+            
         """
 
         span.set_attribute("prompt", str(prompt))
