@@ -31,9 +31,9 @@ class ModuleService:
 
     async def get_module(self, module_id: str) -> Module:
         module = await self.collection.find_one({"_id": ObjectId(module_id)})
-        module['id'] = str(module['_id'])
-        module['course_id'] = ObjectId(module['course_id'])
         if module:
+            module['id'] = str(module['_id'])
+            module['course_id'] = ObjectId(module['course_id'])
             return Module(**module)
         return None
 
