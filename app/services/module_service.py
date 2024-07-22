@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from motor.motor_asyncio import AsyncIOMotorCollection
 from fastapi import Depends
 from bson import ObjectId
@@ -19,11 +19,13 @@ class ModuleService:
         module_dict['course_id'] = ObjectId(module_dict['course_id'])
         return Module(**module_dict)
 
-    async def get_modules(self) -> List[Module]:
+    async def get_modules(self, course_id: Optional[str] = None) -> List[Module]:
         modules = []
-        async for module in self.collection.find():
+        query = {}
+        if course_id:
+            query['course_id'] = ObjectId(course_id)
+        async for module in self.collection.find(query):
             module['id'] = str(module['_id'])
-            module['course_id'] = ObjectId(module['course_id'])
             modules.append(Module(**module))
         return modules
 
