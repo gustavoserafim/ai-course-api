@@ -34,9 +34,9 @@ async def update_module(
     module = await service.update_module(module_id, module)
     return module.to_response()
 
-@router.delete("/{content_id}", response_model=None)
-async def delete_module(content_id: str, service: ModuleService = Depends()):
-    success = await service.delete_module(content_id)
+@router.delete("/{module_id}", response_model=None)
+async def delete_module(module_id: str, service: ModuleService = Depends()):
+    success = await service.delete_module(module_id)
     if not success:
-        raise HTTPException(status_code=404, detail="Content not found")
-    return {"detail": "Content deleted successfully"}
+        raise HTTPException(status_code=404, detail="Module not found")
+    return {"detail": "Module deleted successfully"}
