@@ -1,32 +1,46 @@
 import json
 from app.models.course import Course
 
-async def convert_outline_prompt(outline: str) -> str:
-    output_example = json.dumps({
-        "outline": [{
-            "topic": "Tópico 1",
-            "subtopics": [
-                "Sub-tópico 1",
-                "Sub-tópico 2",
-                "Sub-tópico 3",
-                "Sub-tópico 4",
-            ]
-        }]
-    })
-    
-    prompt = f"""
-    Eu tenho o seguinte outline:
+from opentelemetry import trace
 
-    {outline}
+tracer = trace.get_tracer(__name__)
 
-    O primeiro nivel do outline é o tópico e o segundo nivel é o sub-tópico.
+async def convert_outline_prompt(
+        outline: str
+) -> str:
+    with tracer.start_as_current_span("convert_outline_prompt") as span:
+        span.set_attribute("outline", str(outline))
 
-    Gostaria que você convertesse esse outline para o seguinte formato, sem 
-    adicionar comentários ao conteúdo:
+        output_example = json.dumps({
+            "outline": [{
+                "topic": "Tópico 1",
+                "subtopics": [
+                    "Sub-tópico 1",
+                    "Sub-tópico 2",
+                    "Sub-tópico 3",
+                    "Sub-tópico 4",
+                ]
+            }]
+        })
 
-    {output_example}
-    """
-    return prompt
+        span.set_attribute("output_example", str(output_example))
+        
+        prompt = f"""
+        Eu tenho o seguinte outline:
+
+        {outline}
+
+        O primeiro nivel do outline é o tópico e o segundo nivel é o sub-tópico.
+
+        Gostaria que você convertesse esse outline para o seguinte formato, sem 
+        adicionar comentários ao conteúdo:
+
+        {output_example}
+        """
+
+        span.set_attribute("prompt", str(prompt))
+
+        return prompt
 
 async def module_objectives_prompt(course: Course) -> str:
 
@@ -61,77 +75,95 @@ async def module_objectives_prompt(course: Course) -> str:
 async def content_prompt(
     course: Course,
     topic: str,
-    subtopic: str):
+    subtopic: str
+):
+    with tracer.start_as_current_span("content_prompt") as span:
+        span.set_attribute("Course", str(course.name))
+        span.set_attribute("topic", str(topic))
+        span.set_attribute("subtopic", str(subtopic))
 
-    output_example = json.dumps({
-        "content_blocks": [{
-            "type": "TEXT",
-            "content": "Texto sobre o tópico"
-        }]
-    })
-      
-    prompt = f"""
-        Estou elaborando o conteúdo para um curso universitário 
-        de "{course.name}" e gostaria que você gerasse para mim o conteúdo 
-        academico completo da aula "{topic}" mais especificamente 
-        sobre "{subtopic}", sem adicionar comentários ao conteúdo.
+        output_example = json.dumps({
+            "content_blocks": [{
+                "type": "TEXT",
+                "content": "Texto sobre o tópico"
+            }]
+        })
 
-        Você deve gerar esse conteúdo em blocos.
+        span.set_attribute("output_example", str(output_example))
+        
+        prompt = f"""
+            Estou elaborando o conteúdo para um curso universitário 
+            de "{course.name}" e gostaria que você gerasse para mim o conteúdo 
+            academico completo da aula "{topic}" mais especificamente 
+            sobre "{subtopic}", sem adicionar comentários ao conteúdo.
 
-        Especifique também o tipo de cada bloco: texto, imagem, 
-        vídeo, lista de tópicos. Use os labels: IMAGE, TEXT, VIDEO.
+            Você deve gerar esse conteúdo em blocos.
 
-        Importante que cada bloco tenha uma continuidade do bloco anterior.
+            Especifique também o tipo de cada bloco: texto, imagem, 
+            vídeo, lista de tópicos. Use os labels: IMAGE, TEXT, VIDEO.
 
-        Quero que você escreva em Português do Brasil.
+            Importante que cada bloco tenha uma continuidade do bloco anterior.
 
-        O texto deve ter pelo menos 2000 palavras.
+            Quero que você escreva em Português do Brasil.
 
-        Importante que o texto seja coeso e coerente e que tenha uma estrutura
-        lógica com começo, meio e fim.
+            O texto deve ter pelo menos 2000 palavras.
 
-        Gostaria que o output fosse gerado em JSON. Seguindo o seguinte formato:
+            Importante que o texto seja coeso e coerente e que tenha uma estrutura
+            lógica com começo, meio e fim.
 
-        {output_example}
+            Gostaria que o output fosse gerado em JSON. Seguindo o seguinte formato:
 
-        Não deve aparecer blocos incompletos que possam quebrar o JSON gerado.
+            {output_example}
 
-        No caso de imagens ou videos, quero que o bloco tenha um prompt para a 
-        geração desses conteúdos. Porem, é importante que você mantenha a estrutura
-        sugerida.
-    """
+            Não deve aparecer blocos incompletos que possam quebrar o JSON gerado.
 
-    return prompt
+            No caso de imagens ou videos, quero que o bloco tenha um prompt para a 
+            geração desses conteúdos. Porem, é importante que você mantenha a estrutura
+            sugerida.
+        """
+
+        span.set_attribute("prompt", str(prompt))
+
+        return prompt
 
 
-async def course_detail_prompt(course: Course) -> str:
-    output_example = json.dumps({
-        "data": {
-            "generated_description": "description",
-            "generated_propose": "propose",
-            "generated_introduction": "introduction",
-            "generated_conclusion": "conclusion",
-        }
-    })
+async def course_detail_prompt(
+        course: Course
+) -> str:
+    with tracer.start_as_current_span("course_detail_prompt") as span:
+        span.set_attribute("Course", str(course.name))
 
-    prompt = f"""
-        Estou elaborando o conteúdo para um curso universitário de "{course.name}", 
-        no qual eu desejo abordar os seguintes tópicos:
+        output_example = json.dumps({
+            "data": {
+                "generated_description": "description",
+                "generated_propose": "propose",
+                "generated_introduction": "introduction",
+                "generated_conclusion": "conclusion",
+            }
+        })
 
-        {course.learning_topics}
+        span.set_attribute("output_example", str(output_example))
 
-        Gostaria que você gerasse para mim um conteúdo de apresentação do curso 
-        para os alunos que vão cursa-lo com as seguintes informações, sem adicionar 
-        comentários ao conteúdo:
+        prompt = f"""
+            Estou elaborando o conteúdo para um curso universitário de "{course.name}", 
+            no qual eu desejo abordar os seguintes tópicos:
 
-        * Descrição do Curso
-        * Propósito do Curso
-        * Introdução do Curso
-        * Considerações finais
+            {course.learning_topics}
 
-        Gostaria que o output fosse gerado em JSON, seguindo o formato:
+            Gostaria que você gerasse para mim um conteúdo de apresentação do curso 
+            para os alunos que vão cursa-lo com as seguintes informações, sem adicionar 
+            comentários ao conteúdo:
 
-        {output_example}
-    """
+            * Descrição do Curso
+            * Propósito do Curso
+            * Introdução do Curso
+            * Considerações finais
 
-    return prompt
+            Gostaria que o output fosse gerado em JSON, seguindo o formato:
+
+            {output_example}
+        """
+
+        span.set_attribute("prompt", str(prompt))
+
+        return prompt
