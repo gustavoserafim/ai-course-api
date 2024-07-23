@@ -70,6 +70,9 @@ async def generate_course_detail(
         span.set_attribute("course_id", str(course_id))
 
         course = await course_service.get_course(course_id)
+        if not course:
+            raise HTTPException(status_code=404, detail="Course not found")
+
         background_tasks.add_task(
             task_generate_course_detail,
             course=course,
