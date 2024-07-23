@@ -1,1 +1,1 @@
-web: gunicorn -k uvicorn.workers.UvicornWorker app.main:app --workers=2
+web: opentelemetry-instrument gunicorn -k uvicorn.workers.UvicornWorker app.main:app --workers=2
