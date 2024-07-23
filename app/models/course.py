@@ -62,6 +62,10 @@ class Course(BaseModel):
             "assessment_procedures": self.assessment_procedures,
             "basic_bibliography": self.basic_bibliography,
             "complementary_bibliography": self.complementary_bibliography,
-            "status": self.status
+            "status": self.status,
+            "generated_description": self.generated_description,
+            "generated_propose": self.generated_propose,
+            "generated_introduction": self.generated_introduction,
+            "generated_conclusion": self.generated_conclusion
         }
         return CourseResponse(**data)
