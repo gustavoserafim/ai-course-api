@@ -23,7 +23,7 @@ async def request_text_generation(
         span.set_attribute("top_p", str(top_p))
         span.set_attribute("repetition_penalty", str(repetition_penalty))
 
-        url = f"{settings.TELA_URL}text-to-generate"
+        url = f"{settings.TELA_URL}/text-to-generate"
 
         span.set_attribute("url", str(url))
 
