@@ -60,20 +60,21 @@ async def module_objectives_prompt(course: Course) -> str:
 
     {course.learning_topics}
 
-    O primeiro nivel do outline é o nome do módulo e o segundo nível são os 
-    nomes das aulas que serão abordados em cada tópico.
+    O primeiro nivel do outline é o nome do módulo e o segundo 
+    nível são os nomes das aulas que serão abordados em  cada tópico.
+
+    Quero que você gere os objetivos de cada módulo baseado nos assuntos que
+    serão abordados no segundo nível do outline.
+
         
-    Gostaria que você gerasse para mim uma estrutura, seguindo o seguinte 
-    formato JSON, sem adicionar comentários ao conteúdo:
+    Preciso que você gere para mim esse conteúdo seguindo rigorosamente o 
+    seguinte output, sem adicionar comentários ao conteúdo:
      
     {output_example}
 
-    Observe que haverá apenas um objeto para o primeiro nível do outline.
-
-    Os subtopicos estarão dentro da lista de subtópicos na estrutura sugerida.
-
-    Escreva um objetivo para cada módulo baseado nos assuntos que serão abordados.
-
+    Adicione exatamente os mesmos subtópicos que estão no outline original na
+    lista de subtopicos da estrutura sugerida para output.
+    
     No output você deve omitir as marcações númericas.
 
     Escreva a resposta em português do Brasil.
@@ -93,21 +94,16 @@ async def lesson_prompt(
         
         prompt = f"""
             Estou elaborando o conteúdo para um curso universitário 
-            de "{course_name}" e gostaria que você escreva para mim o conteúdo 
-            academico completo da aula "{module_name}" mais especificamente 
+            de "{course_name}" e gostaria que você escreva para mim o texto 
+            da aula "{module_name}" mais especificamente 
             sobre "{lesson_name}", sem adicionar comentários ao conteúdo.
 
             Quero que você escreva em Português do Brasil.
 
             O texto deve ter pelo menos 3000 palavras.
 
-            Quero que você escreva o conteúdo e não apenas uma estrutura de tópicos
-            e subtópicos.
-
             Importante que o texto seja coeso e coerente e que tenha uma estrutura
             lógica com começo, meio e fim.
-
-            
         """
 
         span.set_attribute("prompt", str(prompt))

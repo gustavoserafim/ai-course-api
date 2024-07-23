@@ -88,11 +88,13 @@ async def generate_course_modules(course: Course):
     try:
         prompt = await prompts.module_objectives_prompt(
             course=course)
+        
+        print(prompt)
 
         return await request_text_generation(
             prompt=prompt,
             max_new_tokens=1000,
-            temperature=0.3,
+            temperature=0.1,
             top_p=0.95,
             repetition_penalty=1.2)
 
@@ -121,7 +123,7 @@ async def generate_module_lesson(
         return await request_text_generation(
             prompt=prompt,
             max_new_tokens=5000,
-            temperature=0.3,
+            temperature=0.1,
             top_p=0.95,
             repetition_penalty=1.2,
             output="text")

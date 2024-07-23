@@ -2,9 +2,10 @@ from typing import List
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from app.services.module_service import ModuleService
 from app.tasks import (
-  task_generate_lesson, 
+
   task_generate_course_detail, 
-  task_generate_course_modules
+  task_generate_course_modules,
+  task_unified_generate_course
 )
 from app.schemas.course import CourseCreate, CourseResponse, CourseUpdate
 from app.services.lesson_service import LessonService, LessonService
@@ -41,12 +42,14 @@ async def update_course(
     course = await service.update_course(course_id, course)
     return course.to_response()
 
-@router.post("/{course_id}/generate-lesson")
+@router.post("/{course_id}/generate-content")
 async def generate_lesson(
     course_id: str,
     background_tasks: BackgroundTasks,
     course_service: CourseService = Depends(),
+    module_service: ModuleService = Depends(),
     lesson_service: LessonService = Depends()):
+
     with tracer.start_as_current_span("generate_content") as span:
         span.set_attribute("course_id", str(course_id))
 
@@ -54,8 +57,10 @@ async def generate_lesson(
         course = await course_service.get_course(course_id)
 
         background_tasks.add_task(
-            task_generate_lesson,
+            task_unified_generate_course,
             course=course,
+            course_service=course_service,
+            module_service=module_service,
             lesson_service=lesson_service)
 
         return {"status": "TASK_ENQUEUED"}
