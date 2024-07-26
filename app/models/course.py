@@ -6,7 +6,7 @@ from app.schemas.course import CourseResponse
 
 
 class CourseStatusEnum(str, Enum):
-    INITIAL = "INITIAL"
+    DRAFT = "DRAFT"
     PEDAGOGIC_REVIEW = "PEDAGOGIC_REVIEW"
     QA_REVIEW = "QA_REVIEW"
     PUBLISHED = "PUBLISHED"
@@ -31,7 +31,7 @@ class Course(BaseModel):
     assessment_procedures: Optional[str] = None
     basic_bibliography: Optional[str] = None
     complementary_bibliography: Optional[str] = None
-    status: CourseStatusEnum = CourseStatusEnum.INITIAL
+    status: CourseStatusEnum = CourseStatusEnum.DRAFT
     generated_description: Optional[str] = None
     generated_propose: Optional[str] = None
     generated_introduction: Optional[str] = None

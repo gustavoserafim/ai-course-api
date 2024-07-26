@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class CourseStatusEnum(str, Enum):
-    INITIAL = "INITIAL"
+    DRAFT = "DRAFT"
     PEDAGOGIC_REVIEW = "PEDAGOGIC_REVIEW"
     QA_REVIEW = "QA_REVIEW"
     PUBLISHED = "PUBLISHED"
@@ -28,7 +28,7 @@ class CourseBase(BaseModel):
     assessment_procedures: Optional[str] = Field(None, description="Procedimentos de avaliação")
     basic_bibliography: Optional[str] = Field(None, description="Bibliografia básica do curso")
     complementary_bibliography: Optional[str] = Field(None, description="Bibliografia complementar do curso")
-    status: Optional[CourseStatusEnum] = Field(CourseStatusEnum.INITIAL, description="Status do curso")
+    status: Optional[CourseStatusEnum] = Field(CourseStatusEnum.DRAFT, description="Status do curso")
     generated_description: Optional[str] = None
     generated_propose: Optional[str] = None
     generated_introduction: Optional[str] = None
