@@ -7,6 +7,8 @@ from app.schemas.course import CourseResponse
 
 class CourseStatusEnum(str, Enum):
     DRAFT = "DRAFT"
+    PROCESSING = "PROCESSING"
+    READY = "READY"
     PEDAGOGIC_REVIEW = "PEDAGOGIC_REVIEW"
     QA_REVIEW = "QA_REVIEW"
     PUBLISHED = "PUBLISHED"

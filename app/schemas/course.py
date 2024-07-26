@@ -5,6 +5,8 @@ from pydantic import BaseModel, Field
 
 class CourseStatusEnum(str, Enum):
     DRAFT = "DRAFT"
+    PROCESSING = "PROCESSING"
+    READY = "READY"
     PEDAGOGIC_REVIEW = "PEDAGOGIC_REVIEW"
     QA_REVIEW = "QA_REVIEW"
     PUBLISHED = "PUBLISHED"

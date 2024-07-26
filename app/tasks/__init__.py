@@ -27,12 +27,19 @@ async def task_unified_generate_course(
     lesson_service: LessonService) -> None:
 
     print("START: task_unified_generate_course")
-    start_time = time.time() 
+    start_time = time.time()
 
     with tracer.start_as_current_span("task_unified_generate_course") as span:
         span.set_attribute("Course", str(course.name))
 
         try:
+
+            # update course status to READY
+            course_status = CourseUpdate(**{
+                "status": "PROCESSING"
+            })
+            await course_service.update_course(course.id, course_status)
+
             # generate course detail
             course_details = await generate_course_detail(course)
             details = CourseUpdate(**course_details.get("data"))
@@ -40,7 +47,6 @@ async def task_unified_generate_course(
 
             # generate course modules
             module_details = await generate_course_modules(course)
-            print(module_details)
 
             for module in module_details.get("data"):
                 module_dict = {
@@ -68,7 +74,14 @@ async def task_unified_generate_course(
 
                     new_lesson = LessonCreate(**lesson_data)
                     await lesson_service.create_lesson(new_lesson)
+            
+            # update course status to READY
+            course_status = CourseUpdate(**{
+                "status": "READY"
+            })
+            await course_service.update_course(course.id, course_status)
 
+            # notify the user that the course content was generated
             await ws.broadcast(json.dumps({
                 "message": f'Content generation of course "{course.name}" completed',
                 "status": "COMPLETED"
