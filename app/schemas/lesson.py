@@ -6,6 +6,8 @@ class LessonBase(BaseModel):
     module_id: str
     name: str
     content: str
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
 
     class Config:
         arbitrary_types_allowed=True

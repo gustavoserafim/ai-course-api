@@ -1,3 +1,4 @@
+import datetime
 from typing import List, Optional
 from motor.motor_asyncio import AsyncIOMotorCollection
 from fastapi import Depends
@@ -15,6 +16,8 @@ class LessonService:
 
     async def create_lesson(self, lesson_data: LessonCreate) -> Lesson:
         lesson_dict = lesson_data.dict()
+        lesson_dict["created_at"] = datetime.datetime.utcnow()
+        lesson_dict["updated_at"] = datetime.datetime.utcnow()        
         lesson_dict['course_id'] = ObjectId(lesson_dict['course_id'])
         lesson_dict['module_id'] = ObjectId(lesson_dict['module_id'])
         result = await self.collection.insert_one(lesson_dict)
@@ -40,9 +43,11 @@ class LessonService:
         return None
 
     async def update_lesson(self, lesson_id: str, lesson_data: LessonUpdate) -> Optional[Lesson]:
+        lesson_dict = lesson_data.dict(exclude_unset=True)
+        lesson_dict['updated_at'] = datetime.datetime.utcnow()
         update_data = {
             "$set": {
-                k: v for k, v in lesson_data.dict(exclude_unset=True).items() if v is not None
+                k: v for k, v in lesson_dict.items() if v is not None
             }
         }
         updated_lesson = await self.collection.find_one_and_update({
