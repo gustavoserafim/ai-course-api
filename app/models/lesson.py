@@ -12,6 +12,7 @@ class Lesson(BaseModel):
     content: str
     created_at: datetime = Field(default_factory=datetime.datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.datetime.utcnow)
+    deleted_at: datetime = Field(default_factory=datetime.datetime.utcnow)
 
     class Config:
         arbitrary_types_allowed = True

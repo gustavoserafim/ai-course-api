@@ -27,7 +27,9 @@ class LessonService:
 
     async def list_lesson(self, course_id: str = None, module_id: str = None) -> List[Lesson]:
         lessons = []
-        query = {}
+        query = {
+            "deleted_at": None
+        }
         if course_id:
             query['course_id'] = ObjectId(course_id)
         if module_id:
@@ -37,7 +39,10 @@ class LessonService:
         return lessons
 
     async def get_lesson(self, lesson_id: str) -> Optional[Lesson]:
-        lesson = await self.collection.find_one({"_id": ObjectId(lesson_id)})
+        lesson = await self.collection.find_one({
+            "_id": ObjectId(lesson_id),
+            "deleted_at": None
+        })
         if lesson:
             return Lesson(**lesson)
         return None
@@ -57,5 +62,9 @@ class LessonService:
         return Lesson(**updated_lesson)
 
     async def delete_lesson(self, lesson_id: str) -> bool:
-        result = await self.collection.delete_one({"_id": ObjectId(lesson_id)})
-        return result.deleted_count == 1
+        lesson_dict = {"deleted_at": datetime.datetime.utcnow()}
+        update_data = {"$set": { k: v for k, v in lesson_dict.items() if v is not None } }
+        updated_lesson = await self.collection.find_one_and_update({
+            "_id": ObjectId(lesson_id)}, 
+            update_data)
+        return updated_lesson is not None
