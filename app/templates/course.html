@@ -3,93 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{course}}</title>
+    <title>{{course.name}}</title>
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f4f4f4;
-      }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            line-height: 1.6;
+        }
 
-      header {
-        background-color: #333;
-        color: white;
-        padding: 1em 0;
-        text-align: center;
-      }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 1em 0;
+            text-align: center;
+        }
 
-      nav {
-        background-color: #444;
-        color: white;
-        padding: 0.5em;
-      }
+        nav {
+            background-color: #444;
+            color: white;
+            padding: 0.5em;
+        }
 
-      nav ul {
-        list-style-type: none;
-        padding: 0;
-      }
+        nav ul li {
+            margin-right: 1em;
+        }
 
-      nav ul li {
-        display: inline;
-        margin-right: 1em;
-      }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5em 1em;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
 
-      nav ul li a {
-        color: white;
-        text-decoration: none;
-      }
+        nav ul li a:hover {
+            background-color: #555;
+        }
 
-      main {
-        padding: 2em;
-      }
+        main {
+            padding: 2em;
+            max-width: 800px;
+            margin: auto;
+        }
 
-      section {
-        margin-bottom: 2em;
-      }
+        section {
+            margin-bottom: 2em;
+        }
 
-      h2, h3 {
-        color: #333;
-      }
+        h2, h3 {
+            color: #333;
+        }
 
-      article {
-        background-color: white;
-        padding: 1em;
-        border-radius: 5px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      }
+        article {
+            background-color: white;
+            padding: 1em;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2em;
+        }
 
-      img {
-        max-width: 100%;
-        height: auto;
-        margin: 1em 0;
-      }
+        article h3 {
+            margin-top: 0;
+        }
+
+        blockquote {
+            margin: 0;
+            padding: 1em;
+            background-color: #f9f9f9;
+            border-left: 5px solid #ccc;
+        }
     </style>
 </head>
 <body>
     <header>
-        <h1>{{course}}</h1>
-        <h2>{{subject}}</h2>
+        <h1>{{course.name}}</h1>
     </header>
     <nav>
         <ul>
-            {% for chapter in chapters %}
-            <li><a href="#{{ chapter|slugify }}">{{ chapter }}</a></li>
+            {% for module in modules %}
+            <li><a href="#module-{{ module.id|slugify }}">{{ module.name }}</a></li>
             {% endfor %}
         </ul>
     </nav>
     <main>
-        {% for chapter in chapters %}
-        <section id="{{ chapter|slugify }}">
-            <h2>{{ chapter }}</h2>
-            <article>
-                {% for topic in chapter.outline %}
-                  <h3>{{ topic.topic }}</h3>
-                  {% for subtopic in topic.subtopics %}
-                  <p>{{ subtopic }}</p>
-                  {% endfor %}
-                {% endfor %}
+        {% for module in modules %}
+        <section id="module-{{ module.id|slugify }}">
+            <h2>{{ module.name }}</h2>
+            <h3>{{ module.generated_objective }}</h3>
+            <nav>
+                <ul>
+                    {% for lesson in lessons | filter_by('module_id', module.id) %}
+                    <li><a href="#lesson-{{ lesson.id|slugify }}">{{ lesson.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </nav>
+            {% for lesson in lessons | filter_by('module_id', module.id) %}
+            <article id="lesson-{{ lesson.id|slugify }}">
+                <h3>{{ lesson.name }}</h3>
+                <blockquote>{{ lesson.content }}</blockquote>
             </article>
+            {% endfor %}
         </section>
         {% endfor %}
     </main>

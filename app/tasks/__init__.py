@@ -18,6 +18,8 @@ from app.services.module_service import ModuleService
 
 from opentelemetry import trace
 
+from app.tasks import output
+
 tracer = trace.get_tracer(__name__)
 
 async def task_unified_generate_course(
@@ -99,4 +101,51 @@ async def task_unified_generate_course(
     end_time = time.time()
     execution_time = end_time - start_time
     print("COMPLETED: task_unified_generate_course")
+    print(f"Execution time: {execution_time:.2f}.")
+
+async def task_generate_course_html(
+    course_id: str,
+    course_service: CourseService,
+    module_service: ModuleService,
+    lesson_service: LessonService) -> None:
+
+    print("START: task_generate_course_html")
+    start_time = time.time()
+
+    try: 
+        context = {}
+
+        course = await course_service.get_course(course_id)
+        modules = await module_service.get_modules(course_id)
+        lessons = await lesson_service.list_lesson(course_id)
+
+        context['course'] = course.to_response()
+        context['modules'] = [module.to_response() for module in modules]
+        context['lessons'] = [lesson.to_response().dict() for lesson in lessons]
+
+        html = output.to_html(context)
+
+        # salvar no banco
+        await course_service.update_course(course_id, CourseUpdate(**{
+            "html": html
+        }))
+
+        await ws.broadcast(json.dumps({
+            "message": f'HTML generation "{course.name}" completed',
+            "course_id": course_id,
+            "status": "COMPLETED"
+        }))
+    except Exception as e:
+        await ws.broadcast(json.dumps({
+            "message": f'We had a problem to generate html for "{course.name}"',
+            "details": str(e),
+            "status": "ERROR"
+        }))
+        print(f"An error occurred: {e}")
+        traceback.print_exc()
+        raise e
+    
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print("COMPLETED: task_generate_course_html")
     print(f"Execution time: {execution_time:.2f}.")

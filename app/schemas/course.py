@@ -35,6 +35,7 @@ class CourseBase(BaseModel):
     generated_propose: Optional[str] = None
     generated_introduction: Optional[str] = None
     generated_conclusion: Optional[str] = None
+    html: Optional[str] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
 

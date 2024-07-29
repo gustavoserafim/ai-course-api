@@ -2,6 +2,7 @@ from typing import List
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from app.services.module_service import ModuleService
 from app.tasks import (
+  task_generate_course_html,
   task_unified_generate_course
 )
 from app.schemas.course import CourseCreate, CourseResponse, CourseUpdate
@@ -56,6 +57,26 @@ async def generate_content(
         background_tasks.add_task(
             task_unified_generate_course,
             course=course,
+            course_service=course_service,
+            module_service=module_service,
+            lesson_service=lesson_service)
+
+        return {"status": "TASK_ENQUEUED"}
+
+@router.post("/{course_id}/generate-html")
+async def generate_html(
+    course_id: str,
+    background_tasks: BackgroundTasks,
+    course_service: CourseService = Depends(),
+    module_service: ModuleService = Depends(),
+    lesson_service: LessonService = Depends()):
+
+    with tracer.start_as_current_span("generate_html") as span:
+        span.set_attribute("course_id", str(course_id))
+
+        background_tasks.add_task(
+            task_generate_course_html,
+            course_id=course_id,
             course_service=course_service,
             module_service=module_service,
             lesson_service=lesson_service)
