@@ -1,13 +1,17 @@
+import datetime
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class ModuleBase(BaseModel):
     course_id: str
     name: str
     generated_objective: Optional[str] = None
     subtopics: Optional[list[str]] = []
-    
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
     class Config:
+        populate_by_name = True
         arbitrary_types_allowed=True
 
 class ModuleCreate(ModuleBase):

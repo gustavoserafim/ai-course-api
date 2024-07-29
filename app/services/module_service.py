@@ -1,3 +1,4 @@
+import datetime
 from typing import List, Optional
 from motor.motor_asyncio import AsyncIOMotorCollection
 from fastapi import Depends
@@ -14,6 +15,8 @@ class ModuleService:
 
     async def create_module(self, module_data: ModuleCreate) -> Module:
         module_dict = module_data.dict()
+        module_dict["created_at"] = datetime.datetime.utcnow()
+        module_dict["updated_at"] = datetime.datetime.utcnow()
         module_dict['course_id'] = ObjectId(module_dict['course_id'])
         result = await self.collection.insert_one(module_dict)
         module_dict['id'] = str(result.inserted_id)
@@ -38,7 +41,9 @@ class ModuleService:
         return None
 
     async def update_module(self, module_id: str, module_data: ModuleUpdate) -> ModuleResponse:
-        update_data = {"$set": {k: v for k, v in module_data.dict(exclude_unset=True).items() if v is not None}}
+        module_dict = module_data.dict(exclude_unset=True)
+        module_dict['updated_at'] = datetime.datetime.utcnow()
+        update_data = {"$set": {k: v for k, v in module_dict.items() if v is not None}}
         await self.collection.update_one({"_id": ObjectId(module_id)}, update_data)
         updated_module = await self.collection.find_one({"_id": ObjectId(module_id)})
         updated_module['id'] = str(updated_module['_id'])
