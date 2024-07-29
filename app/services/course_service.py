@@ -1,3 +1,4 @@
+import datetime
 from typing import List
 from motor.motor_asyncio import AsyncIOMotorCollection
 from fastapi import Depends
@@ -14,6 +15,8 @@ class CourseService:
 
     async def create_course(self, course_data: CourseCreate) -> CourseResponse:
         course_dict = course_data.dict()
+        course_dict["created_at"] = datetime.datetime.utcnow()
+        course_dict["updated_at"] = datetime.datetime.utcnow()
         result = await self.collection.insert_one(course_dict)
         course_dict['id'] = str(result.inserted_id)
         return Course(**course_dict)
@@ -32,7 +35,9 @@ class CourseService:
         return None
 
     async def update_course(self, course_id: str, course_data: CourseUpdate) -> CourseResponse:
-        update_data = {"$set": {k: v for k, v in course_data.dict(exclude_unset=True).items() if v is not None}}
+        course_dict = course_data.dict(exclude_unset=True)
+        course_dict['updated_at'] = datetime.datetime.utcnow()
+        update_data = {"$set": {k: v for k, v in course_dict.items() if v is not None}}
         await self.collection.update_one({"_id": ObjectId(course_id)}, update_data)
         updated_course = await self.collection.find_one({"_id": ObjectId(course_id)})
         updated_course['id'] = str(updated_course['_id'])

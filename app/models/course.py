@@ -1,3 +1,4 @@
+import datetime
 from enum import Enum
 from typing import Optional
 from pydantic import BaseModel, Field
@@ -38,6 +39,8 @@ class Course(BaseModel):
     generated_propose: Optional[str] = None
     generated_introduction: Optional[str] = None
     generated_conclusion: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.datetime.utcnow)
 
     class Config:
         json_encoders = {ObjectId: str}
@@ -68,6 +71,8 @@ class Course(BaseModel):
             "generated_description": self.generated_description,
             "generated_propose": self.generated_propose,
             "generated_introduction": self.generated_introduction,
-            "generated_conclusion": self.generated_conclusion
+            "generated_conclusion": self.generated_conclusion,
+            "created_at": str(self.created_at),
+            "updated_at": str(self.updated_at)
         }
         return CourseResponse(**data)

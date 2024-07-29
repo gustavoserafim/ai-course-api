@@ -1,3 +1,4 @@
+import datetime
 from enum import Enum
 from typing import Optional
 from pydantic import BaseModel, Field
@@ -35,6 +36,8 @@ class CourseBase(BaseModel):
     generated_propose: Optional[str] = None
     generated_introduction: Optional[str] = None
     generated_conclusion: Optional[str] = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
 
 class CourseCreate(CourseBase):
     pass
@@ -43,7 +46,6 @@ class CourseUpdate(CourseBase):
     name: Optional[str] = None
 
 class CourseResponse(CourseBase):
-    id: str
 
     class Config:
         populate_by_name = True
