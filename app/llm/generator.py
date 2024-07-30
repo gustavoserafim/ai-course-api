@@ -5,9 +5,9 @@ from app.models.course import Course
 
 from opentelemetry import trace
 
-from app.models.tela_log import ContentTypeEnum
-from app.schemas.tela_log import TelaLogCreate
-from app.services.telalog_service import make_telalog_service
+from app.models.prompt_store import ContentTypeEnum
+from app.schemas.prompt_store import PromptStoreCreate
+from app.services.prompt_store_service import make_prompt_store_service
 
 tracer = trace.get_tracer(__name__)
 
@@ -18,7 +18,7 @@ async def generate_course_detail(course: Course):
         span.set_attribute("Course", str(course.name))
 
         try:
-            tela_service = await make_telalog_service()
+            prompt_store_service = await make_prompt_store_service()
 
             prompt = await prompts.course_detail_prompt(
                 course=course)
@@ -30,7 +30,7 @@ async def generate_course_detail(course: Course):
                 top_p=0.95,
                 repetition_penalty=1.2)
 
-            log = TelaLogCreate(
+            log = PromptStoreCreate(
                 content_type=ContentTypeEnum.COURSE,
                 prompt=prompt,
                 response=response,
@@ -39,7 +39,7 @@ async def generate_course_detail(course: Course):
                 }
             )
 
-            await tela_service.register_log(log)
+            await prompt_store_service.register_log(log)
 
             return response
 
@@ -52,7 +52,7 @@ async def generate_course_detail(course: Course):
 async def generate_course_modules(course: Course):
     assert course is not None, "exception:COURSE_REQUIDED"
     try:
-        tela_service = await make_telalog_service()
+        prompt_store_service = await make_prompt_store_service()
 
         prompt = await prompts.module_objectives_prompt(
             course=course)
@@ -66,7 +66,7 @@ async def generate_course_modules(course: Course):
             top_p=0.95,
             repetition_penalty=1.2)
 
-        log = TelaLogCreate(
+        log = PromptStoreCreate(
             content_type=ContentTypeEnum.MODULE,
             prompt=prompt,
             response=response,
@@ -75,7 +75,7 @@ async def generate_course_modules(course: Course):
                 }
         )
         
-        await tela_service.register_log(log)
+        await prompt_store_service.register_log(log)
 
         return response
 
@@ -96,7 +96,7 @@ async def generate_module_lesson(
     ]), "exception:COURSE_REQUIDED"
 
     try:
-        tela_service = await make_telalog_service()
+        prompt_store_service = await make_prompt_store_service()
 
         prompt = await prompts.lesson_prompt(
             course_name, module_name, lesson_name)
@@ -111,7 +111,7 @@ async def generate_module_lesson(
             repetition_penalty=1.2,
             output="text")
 
-        log = TelaLogCreate(
+        log = PromptStoreCreate(
             content_type=ContentTypeEnum.LESSON,
             prompt=prompt,
             response=response,
@@ -120,7 +120,7 @@ async def generate_module_lesson(
             }
         )
         
-        await tela_service.register_log(log)
+        await prompt_store_service.register_log(log)
 
         return response
 

@@ -9,8 +9,8 @@ class ContentTypeEnum(str, Enum):
     MODULE = "MODULE"
     LESSON = "LESSON"
 
-class TelaLog(BaseModel):
-    id: ObjectId = Field(default_factory=ObjectId, alias="_id", description="Identificador único para o curso")
+class PromptStore(BaseModel):
+    id: ObjectId = Field(default_factory=ObjectId, alias="_id")
     content_type: ContentTypeEnum
     prompt: str
     response: Optional[Union[str, dict]] = None

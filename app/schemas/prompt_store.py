@@ -1,12 +1,12 @@
 import datetime
-from typing import Any, Dict, Optional, Union
+from typing import Dict, Optional, Union
 from bson import ObjectId
 from pydantic import BaseModel, Field
 
-from app.models.tela_log import ContentTypeEnum
+from app.models.prompt_store import ContentTypeEnum
 
 
-class TelaLogBase(BaseModel):
+class PromptStoreBase(BaseModel):
     content_type: ContentTypeEnum
     prompt: str
     response: Optional[Union[str, dict]] = None
@@ -18,5 +18,5 @@ class TelaLogBase(BaseModel):
         json_encoders = {ObjectId: str}
         arbitrary_types_allowed = True
 
-class TelaLogCreate(TelaLogBase):
+class PromptStoreCreate(PromptStoreBase):
     pass
