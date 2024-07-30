@@ -1,10 +1,13 @@
 import datetime
+from enum import Enum
 from typing import Dict, Optional, Union
 from bson import ObjectId
 from pydantic import BaseModel, Field
 
-from app.models.prompt_store import ContentTypeEnum
-
+class ContentTypeEnum(str, Enum):
+    COURSE = "COURSE"
+    MODULE = "MODULE"
+    LESSON = "LESSON"
 
 class PromptStoreBase(BaseModel):
     content_type: ContentTypeEnum
@@ -20,3 +23,10 @@ class PromptStoreBase(BaseModel):
 
 class PromptStoreCreate(PromptStoreBase):
     pass
+
+class PromptStoreResponse(PromptStoreBase):
+    id: str
+
+    class Config:
+        populate_by_name = True
+        arbitrary_types_allowed = True

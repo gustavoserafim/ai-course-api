@@ -1,4 +1,7 @@
 import datetime
+from typing import List
+from bson import ObjectId
+from fastapi import Depends
 from motor.motor_asyncio import AsyncIOMotorCollection
 
 from app.db.mongodb import get_collection
@@ -7,10 +10,23 @@ from app.schemas.prompt_store import PromptStoreCreate
 
 
 class PromptStoreService:
-    def __init__(self, collection: AsyncIOMotorCollection):
+    def __init__(self, collection: AsyncIOMotorCollection = Depends(lambda: get_collection("prompt_store"))):
         if collection is None:
             raise ValueError("Collection dependency is None")
         self.collection = collection
+
+    async def list_prompt_store(self) -> List[PromptStore]:
+        log_list = []
+        async for log in self.collection.find():
+            log['id'] = str(log['_id'])
+            log_list.append(PromptStore(**log))
+        return log_list
+
+    async def get_prompt_store(self, prompt_store_id: str) -> PromptStore:
+        log = await self.collection.find_one({"_id": ObjectId(prompt_store_id)})
+        if log:
+            return PromptStore(**log)
+        return None
 
     async def register_log(self, data: PromptStoreCreate) -> PromptStore:
         log_dict = data.dict()

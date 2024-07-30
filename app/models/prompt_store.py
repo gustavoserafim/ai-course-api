@@ -4,6 +4,8 @@ from typing import Dict, Optional, Union
 from pydantic import BaseModel, Field
 from bson import ObjectId
 
+from app.schemas.prompt_store import PromptStoreResponse
+
 class ContentTypeEnum(str, Enum):
     COURSE = "COURSE"
     MODULE = "MODULE"
@@ -21,3 +23,16 @@ class PromptStore(BaseModel):
     class Config:
         json_encoders = {ObjectId: str}
         arbitrary_types_allowed = True
+
+    def to_response(self):
+        data = {
+            "id": str(self.id),
+            "content_type": self.content_type,
+            "prompt": self.prompt,
+            "response": self.response,
+            "data": self.data,
+            "created_at": str(self.created_at),
+            "updated_at": str(self.updated_at)
+        }
+
+        return PromptStoreResponse(**data)
