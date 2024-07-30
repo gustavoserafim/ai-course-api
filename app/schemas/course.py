@@ -46,6 +46,7 @@ class CourseUpdate(CourseBase):
     name: Optional[str] = None
 
 class CourseResponse(CourseBase):
+    id: str
 
     class Config:
         populate_by_name = True
