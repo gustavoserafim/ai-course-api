@@ -85,11 +85,13 @@ async def generate_course_modules(course: Course):
         raise e
 
 async def generate_module_lesson(
+    course_id: str,
     course_name: str,
     module_name: str,
     lesson_name: str):
     
     assert all([
+        course_id,
         course_name, 
         module_name, 
         lesson_name
@@ -116,7 +118,7 @@ async def generate_module_lesson(
             prompt=prompt,
             response=response,
             data={
-                "course_name": course_name
+                "course_id": str(course_id)
             }
         )
         

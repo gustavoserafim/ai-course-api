@@ -63,6 +63,7 @@ async def task_unified_generate_course(
                 # generate lessons
                 for lesson_name in new_module.subtopics:
                     content = await generate_module_lesson(
+                        course_id=course.id,
                         course_name=course.name,
                         module_name=module_created.name,
                         lesson_name=lesson_name)
