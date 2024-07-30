@@ -17,7 +17,7 @@ class PromptStoreService:
 
     async def list_prompt_store(self) -> List[PromptStore]:
         log_list = []
-        async for log in self.collection.find():
+        async for log in self.collection.find().sort("created_at", -1):
             log['id'] = str(log['_id'])
             log_list.append(PromptStore(**log))
         return log_list
