@@ -30,3 +30,9 @@ class PromptStoreResponse(PromptStoreBase):
     class Config:
         populate_by_name = True
         arbitrary_types_allowed = True
+
+
+class PromptStoreListParams(BaseModel):
+    page: int = 1
+    page_size: int = 20
+    sort_by: str = "created_at"

@@ -1,12 +1,12 @@
 import datetime
-from typing import List
+from typing import Any, Dict, List
 from bson import ObjectId
 from fastapi import Depends
 from motor.motor_asyncio import AsyncIOMotorCollection
 
 from app.db.mongodb import get_collection
 from app.models.prompt_store import PromptStore
-from app.schemas.prompt_store import PromptStoreCreate
+from app.schemas.prompt_store import PromptStoreCreate, PromptStoreListParams
 
 
 class PromptStoreService:
@@ -15,12 +15,19 @@ class PromptStoreService:
             raise ValueError("Collection dependency is None")
         self.collection = collection
 
-    async def list_prompt_store(self) -> List[PromptStore]:
+    async def list_prompt_store(self, filters: PromptStoreListParams) -> Dict[str, Any]:
         log_list = []
-        async for log in self.collection.find().sort("created_at", -1):
+        skip = (filters.page - 1) * filters.page_size
+        total = await self.collection.count_documents({})
+        async for log in self.collection.find().sort(filters.sort_by, -1).skip(skip).limit(filters.page_size):
             log['id'] = str(log['_id'])
             log_list.append(PromptStore(**log))
-        return log_list
+        return {
+            "data": log_list,
+            "total": total,
+            "page": filters.page,
+            "page_size": filters.page_size
+        }
 
     async def get_prompt_store(self, prompt_store_id: str) -> PromptStore:
         log = await self.collection.find_one({"_id": ObjectId(prompt_store_id)})
