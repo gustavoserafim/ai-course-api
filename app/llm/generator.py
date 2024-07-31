@@ -23,12 +23,7 @@ async def generate_course_detail(course: Course):
             prompt = await prompts.course_detail_prompt(
                 course=course)
 
-            response = await request_text_generation(
-                prompt=prompt,
-                max_new_tokens=1000,
-                temperature=0.3,
-                top_p=0.95,
-                repetition_penalty=1.2)
+            response = await request_text_generation(prompt)
 
             log = PromptStoreCreate(
                 content_type=ContentTypeEnum.COURSE,
@@ -59,12 +54,7 @@ async def generate_course_modules(course: Course):
         
         print(prompt)
 
-        response =  await request_text_generation(
-            prompt=prompt,
-            max_new_tokens=1000,
-            temperature=0.1,
-            top_p=0.95,
-            repetition_penalty=1.2)
+        response = await request_text_generation(prompt)
 
         log = PromptStoreCreate(
             content_type=ContentTypeEnum.MODULE,
@@ -105,13 +95,7 @@ async def generate_module_lesson(
         
         print(prompt)
 
-        response = await request_text_generation(
-            prompt=prompt,
-            max_new_tokens=5000,
-            temperature=0.1,
-            top_p=0.95,
-            repetition_penalty=1.2,
-            output="text")
+        response = await request_text_generation(prompt, output='text')
 
         log = PromptStoreCreate(
             content_type=ContentTypeEnum.LESSON,

@@ -1,5 +1,5 @@
 import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict
 from bson import ObjectId
 from fastapi import Depends
 from motor.motor_asyncio import AsyncIOMotorCollection
@@ -36,7 +36,7 @@ class PromptStoreService:
         return None
 
     async def register_log(self, data: PromptStoreCreate) -> PromptStore:
-        log_dict = data.dict()
+        log_dict = data.model_dump()
         log_dict["created_at"] = datetime.datetime.utcnow()
         log_dict["updated_at"] = datetime.datetime.utcnow()
         result = await self.collection.insert_one(log_dict)

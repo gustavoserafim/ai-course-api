@@ -1,11 +1,25 @@
 import json
+from typing import List
+
+from pydantic import BaseModel
 from app.models.course import Course
 
 from opentelemetry import trace
 
 tracer = trace.get_tracer(__name__)
 
-async def convert_outline_prompt(outline: str) -> str:
+class PromptMessage(BaseModel):
+    role: str
+    content: str
+
+class Prompt(BaseModel):
+    max_new_tokens: int = 2000
+    temperature: float = 0.1
+    top_p: float = 0.95
+    repetition_penalty: float = 1.2
+    messages: List[PromptMessage]
+
+async def convert_outline_prompt(outline: str) -> Prompt:
 
     with tracer.start_as_current_span("convert_outline_prompt") as span:
 
@@ -21,7 +35,7 @@ async def convert_outline_prompt(outline: str) -> str:
             }]
         })
         
-        prompt = f"""
+        prompt_text = f"""
         Imagine que você está organizando um curso universitário.
         O seguinte esboço do conteúdo foi fornecido:
 
@@ -35,12 +49,17 @@ async def convert_outline_prompt(outline: str) -> str:
 
         {output_example}
         """
+        prompt_message = PromptMessage(
+            role="user",
+            content=prompt_text)
 
-        span.set_attribute("prompt", str(prompt))
+        prompt = Prompt(messages=[prompt_message])
+
+        span.set_attribute("prompt", str(prompt.model_dump()))
 
         return prompt
 
-async def module_objectives_prompt(course: Course) -> str:
+async def module_objectives_prompt(course: Course) -> Prompt:
 
     with tracer.start_as_current_span("module_objectives_prompt") as span:
 
@@ -55,7 +74,7 @@ async def module_objectives_prompt(course: Course) -> str:
             }]
         })
         
-        prompt = f"""
+        prompt_text = f"""
         Você é um especialista em design instrucional, auxiliando na elaboração de 
         um curso universitário chamado "{course.name}".
 
@@ -84,18 +103,24 @@ async def module_objectives_prompt(course: Course) -> str:
         * Escreva em português do Brasil.
         """
 
-        span.set_attribute("prompt", str(prompt))
+        prompt_message = PromptMessage(
+            role="user",
+            content=prompt_text)
+        
+        prompt = Prompt(messages=[prompt_message])
+
+        span.set_attribute("prompt", str(prompt.model_dump()))
 
     return prompt
 
-async def lesson_prompt(course_name: str, module_name: str, lesson_name: str) -> str:
+async def lesson_prompt(course_name: str, module_name: str, lesson_name: str) -> Prompt:
 
     with tracer.start_as_current_span("lesson_prompt") as span:
         span.set_attribute("course_name", str(course_name))
         span.set_attribute("module_name", str(module_name))
         span.set_attribute("lesson_name", str(lesson_name))
         
-        prompt = f"""
+        prompt_text = f"""
             Você está auxiliando na criação de um curso universitário 
             chamado "{course_name}". Sua tarefa é elaborar o conteúdo da 
             aula "{lesson_name}", que faz parte do módulo "{module_name}".
@@ -111,10 +136,15 @@ async def lesson_prompt(course_name: str, module_name: str, lesson_name: str) ->
             *  Seu objetivo é criar uma experiência de aprendizado completa e envolvente.
             *  Não adicione comentários ao conteúdo.
         """
-        span.set_attribute("prompt", str(prompt))
+
+        prompt_message = PromptMessage(
+            role="user",
+            content=prompt_text)
+        prompt = Prompt(messages=[prompt_message])
+        span.set_attribute("prompt", str(prompt.model_dump()))
         return prompt
 
-async def course_detail_prompt(course: Course) -> str:
+async def course_detail_prompt(course: Course) -> Prompt:
 
     with tracer.start_as_current_span("course_detail_prompt") as span:
 
@@ -127,7 +157,7 @@ async def course_detail_prompt(course: Course) -> str:
             }
         })
 
-        prompt = f"""
+        prompt_text = f"""
             Imagine que você está criando um conteúdo educacional rico e 
             envolvente para um curso universitário chamado "{course.name}". 
             
@@ -176,5 +206,13 @@ async def course_detail_prompt(course: Course) -> str:
 
             {output_example}
         """
-        span.set_attribute("prompt", str(prompt))
+
+        prompt_message = PromptMessage(
+            role="user",
+            content=prompt_text)
+        
+        prompt = Prompt(messages=[prompt_message])
+
+        span.set_attribute("prompt", str(prompt.model_dump()))
+
         return prompt

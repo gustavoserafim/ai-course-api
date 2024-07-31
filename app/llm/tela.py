@@ -6,53 +6,28 @@ from app.core.config import settings
 
 from opentelemetry import trace
 
+from app.llm.prompts import Prompt
+
 tracer = trace.get_tracer(__name__)
 
 async def request_text_generation(
-    prompt,
-    max_new_tokens=2000,
-    temperature=0.1,
-    top_p=0.95,
-    repetition_penalty=1.2,
+    prompt: Prompt,
     output='json'):
 
     with tracer.start_as_current_span("request_text_generation") as span:
-        span.set_attribute("prompt", str(prompt))
-        span.set_attribute("max_new_tokens", str(max_new_tokens))
-        span.set_attribute("temperature", str(temperature))
-        span.set_attribute("top_p", str(top_p))
-        span.set_attribute("repetition_penalty", str(repetition_penalty))
+        span.set_attribute("prompt", str(prompt.model_dump()))
 
         url = f"{settings.TELA_URL}/text-to-generate"
-
-        span.set_attribute("url", str(url))
 
         headers = {
             "Content-Type": "application/json",
             "accept": "application/json"
         }
 
-        span.set_attribute("headers", str(headers))
-
-        data = {
-            "messages": [
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            "max_new_tokens": max_new_tokens,
-            "temperature": temperature,
-            "top_p": top_p,
-            "repetition_penalty": repetition_penalty
-        }
-
-        span.set_attribute("data", str(data))
-
         try:
             async with httpx.AsyncClient(timeout=None) as client:
                 with tracer.start_as_current_span("request_to_TELA_text_generation") as req_span:
-                    response = await client.post(url, headers=headers, json=data)
+                    response = await client.post(url, headers=headers, json=prompt.model_dump())
                     req_span.set_attribute("response_status_code", str(response))
 
                     # Cost metrics...
