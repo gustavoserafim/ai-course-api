@@ -12,7 +12,7 @@ tracer = trace.get_tracer(__name__)
 
 async def request_text_generation(
     prompt: Prompt,
-    output='json'):
+    output: str='json'):
 
     with tracer.start_as_current_span("request_text_generation") as span:
         span.set_attribute("prompt", str(prompt.model_dump()))
@@ -63,3 +63,12 @@ async def request_text_generation(
             print(f"An error occurred: {e}")
             traceback.print_exc()
             raise e
+
+async def calculate_readability_metrics(text):
+    import random
+    responses = [
+        ('High', 'Normal', 'High'), 
+        ('High', 'Low', 'High')
+    ]
+    probabilities = [1/3, 2/3]
+    return random.choices(responses, probabilities)[0]
