@@ -1,6 +1,6 @@
 import datetime
 from enum import Enum
-from typing import Dict, Optional, Union
+from typing import Any, Dict, Optional, Union
 from pydantic import BaseModel, Field
 from bson import ObjectId
 
@@ -18,6 +18,7 @@ class PromptStore(BaseModel):
     prompt: PROMPT_HANDLER_LIST
     response: Optional[Union[str, dict]] = None
     data: Optional[Dict[str, str]] = None
+    scores: Optional[Dict[str, Dict[str, Any]]] = None
     created_at: datetime = Field(default_factory=datetime.datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.datetime.utcnow)
 
@@ -32,6 +33,7 @@ class PromptStore(BaseModel):
             "prompt": self.prompt,
             "response": self.response,
             "data": self.data,
+            "scores": self.scores,
             "created_at": str(self.created_at),
             "updated_at": str(self.updated_at)
         }
