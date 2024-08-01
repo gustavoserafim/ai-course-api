@@ -1,6 +1,6 @@
 import traceback
 from app.llm import models
-from app.llm.models import MotorEnum, prompt_handler_factory
+from app.llm.models import MotorEnum
 from app.llm import prompts
 from app.llm.tela import calculate_readability_metrics, tela_request_factory
 from app.models.course import Course
@@ -28,8 +28,6 @@ async def retryable_tela_request(
         metrics = await calculate_readability_metrics(response)
         kwargs.update(metrics=str(metrics))
 
-        print(kwargs)
-
         log = PromptStoreCreate(
             content_type=ContentTypeEnum.COURSE,
             prompt=prompt,
@@ -53,10 +51,8 @@ async def generate_course_detail(
         span.set_attribute("Course", str(course.name))
         span.set_attribute("motor", str(motor))
 
-        prompt_handler = await prompt_handler_factory(motor)
-
         try:
-            prompt = await prompts.course_detail_prompt(course=course, handler=prompt_handler)
+            prompt = await prompts.course_detail_prompt(course=course, motor=motor)
             return await retryable_tela_request(prompt, motor, course_id=str(course.id))
         except Exception as e:
             span.set_status(trace.StatusCode.ERROR)
@@ -72,9 +68,8 @@ async def generate_course_modules(
     try:
         prompt_store_service = await make_prompt_store_service()
         tela_request_generation = await tela_request_factory(motor)
-        prompt_handler = await prompt_handler_factory(motor)
 
-        prompt = await prompts.module_objectives_prompt(course=course, handler=prompt_handler)
+        prompt = await prompts.module_objectives_prompt(course=course, motor=motor)
         response = await tela_request_generation(prompt)
 
         log = PromptStoreCreate(
@@ -107,8 +102,7 @@ async def generate_module_lesson(
     ]), "exception:COURSE_REQUIDED"
 
     try:
-        prompt_handler = await prompt_handler_factory(motor)
-        prompt = await prompts.lesson_prompt(course_name, module_name, lesson_name, prompt_handler)
+        prompt = await prompts.lesson_prompt(course_name, module_name, lesson_name, motor=motor)
         return await retryable_tela_request(prompt, motor, course_id=str(course_id), output='text')
     except Exception as e:
         print(f"An error occurred: {e}")

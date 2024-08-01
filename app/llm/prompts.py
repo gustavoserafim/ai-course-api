@@ -4,14 +4,16 @@ from typing import Awaitable, Union
 from opentelemetry import trace
 
 from app.models.course import Course
-from app.llm.models import PROMPT_HANDLER_LIST, MotorEnum, PromptMotorA, PromptMotorB
+from app.llm.models import PROMPT_HANDLER_LIST, MotorEnum, PromptMotorA, PromptMotorB, prompt_handler_factory
 
 tracer = trace.get_tracer(__name__)
 
 
 async def course_detail_prompt(
     course: Course,
-    handler: Awaitable) -> PROMPT_HANDLER_LIST:
+    motor: MotorEnum = MotorEnum.MOTOR_A) -> PROMPT_HANDLER_LIST:
+
+    prompt_handler = await prompt_handler_factory(motor)
 
     with tracer.start_as_current_span("course_detail_prompt") as span:
 
@@ -73,13 +75,15 @@ async def course_detail_prompt(
 
             {output_example}
         """
-        prompt = await handler(prompt_text)
+        prompt = await prompt_handler(prompt_text)
         span.set_attribute("prompt", str(prompt.model_dump()))
         return prompt
 
 async def module_objectives_prompt(
     course: Course, 
-    handler: Awaitable) -> Union[PromptMotorA, PromptMotorB]:
+    motor: MotorEnum = MotorEnum.MOTOR_A) -> Union[PromptMotorA, PromptMotorB]:
+
+    prompt_handler = await prompt_handler_factory(motor)
 
     with tracer.start_as_current_span("module_objectives_prompt") as span:
 
@@ -111,7 +115,7 @@ async def module_objectives_prompt(
 
             {output_example}
         """
-        prompt = await handler(prompt_text)
+        prompt = await prompt_handler(prompt_text)
         span.set_attribute("prompt", str(prompt.model_dump()))
         return prompt
 
@@ -119,7 +123,10 @@ async def lesson_prompt(
     course_name: str,
     module_name: str,
     lesson_name: str,
-    handler: Awaitable) -> Union[PromptMotorA, PromptMotorB]:
+    motor: MotorEnum = MotorEnum.MOTOR_A
+) -> Union[PromptMotorA, PromptMotorB]:
+    
+    prompt_handler = await prompt_handler_factory(motor)
 
     with tracer.start_as_current_span("lesson_prompt") as span:
         span.set_attribute("course_name", str(course_name))
@@ -142,6 +149,6 @@ async def lesson_prompt(
             *  Seu objetivo é criar uma experiência de aprendizado completa e envolvente.
             *  Não adicione comentários ao conteúdo.
         """
-        prompt = await handler(prompt_text)
+        prompt = await prompt_handler(prompt_text)
         span.set_attribute("prompt", str(prompt.model_dump()))
         return prompt

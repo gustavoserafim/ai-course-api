@@ -91,8 +91,6 @@ async def calculate_readability_metrics(text):
 async def tela_request_factory(
     motor: prompts.MotorEnum = prompts.MotorEnum.MOTOR_A) -> Callable:
 
-    print(motor)
-
     match motor:
         case MotorEnum.MOTOR_A:
             return request_motor_a
