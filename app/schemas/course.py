@@ -2,6 +2,8 @@ from enum import Enum
 from typing import Optional
 from pydantic import BaseModel, Field
 
+from app.llm.models import MotorEnum
+
 
 class CourseStatusEnum(str, Enum):
     DRAFT = "DRAFT"
@@ -51,3 +53,6 @@ class CourseResponse(CourseBase):
     class Config:
         populate_by_name = True
         arbitrary_types_allowed = True
+
+class GenerateContentPayload(BaseModel):
+    motor: MotorEnum = Field(default=MotorEnum.MOTOR_A)

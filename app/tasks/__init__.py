@@ -1,6 +1,7 @@
 import json
 import time
 import traceback
+from app.llm.models import MotorEnum
 from app.models.course import Course
 from app.models.module import Module
 from app.schemas.course import CourseUpdate
@@ -26,7 +27,8 @@ async def task_unified_generate_course(
     course: Course,
     course_service: CourseService,
     module_service: ModuleService,
-    lesson_service: LessonService) -> None:
+    lesson_service: LessonService,
+    motor: MotorEnum) -> None:
 
     print("START: task_unified_generate_course")
     start_time = time.time()
@@ -35,7 +37,6 @@ async def task_unified_generate_course(
         span.set_attribute("Course", str(course.name))
 
         try:
-
             # update course status to READY
             course_status = CourseUpdate(**{
                 "status": "PROCESSING"
@@ -43,12 +44,12 @@ async def task_unified_generate_course(
             await course_service.update_course(course.id, course_status)
 
             # generate course detail
-            course_details = await generate_course_detail(course)
+            course_details = await generate_course_detail(course, motor=motor)
             details = CourseUpdate(**course_details.get("data"))
             await course_service.update_course(course.id, details)
 
             # generate course modules
-            module_details = await generate_course_modules(course)
+            module_details = await generate_course_modules(course, motor=motor)
 
             for module in module_details.get("data"):
                 module_dict = {
@@ -66,7 +67,8 @@ async def task_unified_generate_course(
                         course_id=course.id,
                         course_name=course.name,
                         module_name=module_created.name,
-                        lesson_name=lesson_name)
+                        lesson_name=lesson_name,
+                        motor=motor)
 
                     lesson_data = {
                         "course_id": str(course.id),

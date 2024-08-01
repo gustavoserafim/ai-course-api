@@ -1,150 +1,17 @@
 import json
-from typing import List
-
-from pydantic import BaseModel
-from app.models.course import Course
+from typing import Awaitable, Union
 
 from opentelemetry import trace
 
+from app.models.course import Course
+from app.llm.models import PROMPT_HANDLER_LIST, MotorEnum, PromptMotorA, PromptMotorB
+
 tracer = trace.get_tracer(__name__)
 
-class PromptMessage(BaseModel):
-    role: str
-    content: str
 
-class Prompt(BaseModel):
-    max_new_tokens: int = 2000
-    temperature: float = 0.1
-    top_p: float = 0.95
-    repetition_penalty: float = 1.2
-    messages: List[PromptMessage]
-
-async def convert_outline_prompt(outline: str) -> Prompt:
-
-    with tracer.start_as_current_span("convert_outline_prompt") as span:
-
-        output_example = json.dumps({
-            "outline": [{
-                "topic": "Tópico 1",
-                "subtopics": [
-                    "Sub-tópico 1",
-                    "Sub-tópico 2",
-                    "Sub-tópico 3",
-                    "Sub-tópico 4",
-                ]
-            }]
-        })
-        
-        prompt_text = f"""
-        Imagine que você está organizando um curso universitário.
-        O seguinte esboço do conteúdo foi fornecido:
-
-        {outline}
-
-        O primeiro nível do esboço representa os tópicos principais do curso,
-        enquanto o segundo nível detalha os subtópicos a serem abordados em cada tópico.
-        Sua tarefa é estruturar esse esboço de forma mais organizada,
-        utilizando o formato JSON demonstrado abaixo.
-        Lembre-se de manter a formatação JSON consistente.
-
-        {output_example}
-        """
-        prompt_message = PromptMessage(
-            role="user",
-            content=prompt_text)
-
-        prompt = Prompt(messages=[prompt_message])
-
-        span.set_attribute("prompt", str(prompt.model_dump()))
-
-        return prompt
-
-async def module_objectives_prompt(course: Course) -> Prompt:
-
-    with tracer.start_as_current_span("module_objectives_prompt") as span:
-
-        output_example = json.dumps({
-            "data": [{
-                "name": "module name",
-                "objective": "generated objective of module",
-                "subtopics": [
-                    "subtopic 1",
-                    "subtopic 2",
-                ]
-            }]
-        })
-        
-        prompt_text = f"""
-        Você é um especialista em design instrucional, auxiliando na elaboração de 
-        um curso universitário chamado "{course.name}".
-
-        Seu objetivo é formular objetivos de aprendizagem claros, concisos e 
-        mensuráveis para cada módulo do curso, com base no seguinte esboço de conteúdo:
-
-        {course.learning_topics}
-
-        Neste esboço:
-        * O primeiro nível representa o nome de cada módulo.
-        * O segundo nível lista as aulas específicas que compõem cada módulo.
-
-        Ao formular os objetivos, siga estas diretrizes:
-        * **Orientação para o aluno:**  Concentre-se no que os alunos serão capazes de fazer após concluir o módulo.
-        * **Clareza e Especificidade:** Use verbos de ação mensuráveis (ex: analisar, aplicar, avaliar, criar).
-        * **Alinhamento com o Conteúdo:**  Garanta que os objetivos reflitam os tópicos e subtópicos listados.
-
-        Estruture sua resposta no formato JSON demonstrado abaixo, incluindo os 
-        subtópicos exatamente como aparecem no esboço original:
-
-        {output_example}
-
-        Lembre-se:
-        * Mantenha a formatação JSON consistente.
-        * Omita as marcações numéricas no output.
-        * Escreva em português do Brasil.
-        """
-
-        prompt_message = PromptMessage(
-            role="user",
-            content=prompt_text)
-        
-        prompt = Prompt(messages=[prompt_message])
-
-        span.set_attribute("prompt", str(prompt.model_dump()))
-
-    return prompt
-
-async def lesson_prompt(course_name: str, module_name: str, lesson_name: str) -> Prompt:
-
-    with tracer.start_as_current_span("lesson_prompt") as span:
-        span.set_attribute("course_name", str(course_name))
-        span.set_attribute("module_name", str(module_name))
-        span.set_attribute("lesson_name", str(lesson_name))
-        
-        prompt_text = f"""
-            Você está auxiliando na criação de um curso universitário 
-            chamado "{course_name}". Sua tarefa é elaborar o conteúdo da 
-            aula "{lesson_name}", que faz parte do módulo "{module_name}".
-
-            Ao elaborar o conteúdo, siga estas diretrizes:
-            * **Público-alvo:** Estudantes universitários.
-            * **Extensão:**  Aproximadamente 3000 palavras.
-            * **Estrutura:** Apresentação, desenvolvimento de conceitos-chave, exemplos, estudos de caso (se aplicável), conclusão.
-            * **Linguagem:** Português do Brasil, formal, clara, concisa e adequada ao público.
-            * **Engajamento:** Inclua exemplos, perguntas reflexivas e conexões com o mundo real para tornar o aprendizado mais eficaz.
-
-            Lembre-se:
-            *  Seu objetivo é criar uma experiência de aprendizado completa e envolvente.
-            *  Não adicione comentários ao conteúdo.
-        """
-
-        prompt_message = PromptMessage(
-            role="user",
-            content=prompt_text)
-        prompt = Prompt(messages=[prompt_message])
-        span.set_attribute("prompt", str(prompt.model_dump()))
-        return prompt
-
-async def course_detail_prompt(course: Course) -> Prompt:
+async def course_detail_prompt(
+    course: Course,
+    handler: Awaitable) -> PROMPT_HANDLER_LIST:
 
     with tracer.start_as_current_span("course_detail_prompt") as span:
 
@@ -206,13 +73,75 @@ async def course_detail_prompt(course: Course) -> Prompt:
 
             {output_example}
         """
-
-        prompt_message = PromptMessage(
-            role="user",
-            content=prompt_text)
-        
-        prompt = Prompt(messages=[prompt_message])
-
+        prompt = await handler(prompt_text)
         span.set_attribute("prompt", str(prompt.model_dump()))
+        return prompt
 
+async def module_objectives_prompt(
+    course: Course, 
+    handler: Awaitable) -> Union[PromptMotorA, PromptMotorB]:
+
+    with tracer.start_as_current_span("module_objectives_prompt") as span:
+
+        output_example = json.dumps({
+            "data": [{
+                "name": "module name",
+                "objective": "generated objective of module",
+                "subtopics": [
+                    "subtopic 1",
+                    "subtopic 2",
+                ]
+            }]
+        })
+
+        prompt_text = f"""
+            Conteúdo:
+            {course.learning_topics}
+
+            Você é um especialista em design instrucional auxiliando na elaboração de 
+            um curso universitário chamado '{course.name}'. Sua tarefa é gerar um 
+            objetivo de aprendizagem claro e mensurável para o 
+            cada módulo do conteúdo fornecido.
+            
+            O objetivo deve ser definido com foco no que os alunos serão capazes de 
+            fazer após completar o módulo e deve estar alinhado com os tópicos listados. 
+            Certifique-se de utilizar verbos de ação mensuráveis (por exemplo, analisar, 
+            aplicar, avaliar, criar). O resultado deve ser estruturado em JSON conforme 
+            o seguinte exemplo:
+
+            {output_example}
+        """
+        prompt = await handler(prompt_text)
+        span.set_attribute("prompt", str(prompt.model_dump()))
+        return prompt
+
+async def lesson_prompt(
+    course_name: str,
+    module_name: str,
+    lesson_name: str,
+    handler: Awaitable) -> Union[PromptMotorA, PromptMotorB]:
+
+    with tracer.start_as_current_span("lesson_prompt") as span:
+        span.set_attribute("course_name", str(course_name))
+        span.set_attribute("module_name", str(module_name))
+        span.set_attribute("lesson_name", str(lesson_name))
+        
+        prompt_text = f"""
+            Você está auxiliando na criação de um curso universitário 
+            chamado "{course_name}". Sua tarefa é elaborar o conteúdo da 
+            aula "{lesson_name}", que faz parte do módulo "{module_name}".
+
+            Ao elaborar o conteúdo, siga estas diretrizes:
+            * **Público-alvo:** Estudantes universitários.
+            * **Extensão:**  Aproximadamente 3000 palavras.
+            * **Estrutura:** Apresentação, desenvolvimento de conceitos-chave, exemplos, estudos de caso (se aplicável), conclusão.
+            * **Linguagem:** Português do Brasil, formal, clara, concisa e adequada ao público.
+            * **Engajamento:** Inclua exemplos, perguntas reflexivas e conexões com o mundo real para tornar o aprendizado mais eficaz.
+
+            Lembre-se:
+            *  Seu objetivo é criar uma experiência de aprendizado completa e envolvente.
+            *  Não adicione comentários ao conteúdo.
+        """
+        prompt = await handler(prompt_text)
+        span.set_attribute("prompt", str(prompt.model_dump()))
         return prompt

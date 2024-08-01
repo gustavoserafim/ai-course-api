@@ -1,11 +1,11 @@
-from typing import List
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from typing import List, Optional
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException
 from app.services.module_service import ModuleService
 from app.tasks import (
   task_generate_course_html,
   task_unified_generate_course
 )
-from app.schemas.course import CourseCreate, CourseResponse, CourseUpdate
+from app.schemas.course import CourseCreate, CourseResponse, CourseUpdate, GenerateContentPayload
 from app.services.lesson_service import LessonService, LessonService
 from app.services.course_service import CourseService
 
@@ -44,6 +44,7 @@ async def update_course(
 async def generate_content(
     course_id: str,
     background_tasks: BackgroundTasks,
+    payload: Optional[GenerateContentPayload] = Body(default=None),
     course_service: CourseService = Depends(),
     module_service: ModuleService = Depends(),
     lesson_service: LessonService = Depends()):
@@ -54,12 +55,18 @@ async def generate_content(
         print("STARTING GENERATION")
         course = await course_service.get_course(course_id)
 
+        if payload is None:
+            payload = GenerateContentPayload()
+
+        span.set_attribute("motor", payload.model_dump())
+
         background_tasks.add_task(
             task_unified_generate_course,
             course=course,
             course_service=course_service,
             module_service=module_service,
-            lesson_service=lesson_service)
+            lesson_service=lesson_service,
+            motor=payload.motor)
 
         return {"status": "TASK_ENQUEUED"}
 

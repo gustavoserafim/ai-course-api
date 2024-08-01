@@ -4,7 +4,7 @@ from typing import Dict, Optional, Union
 from bson import ObjectId
 from pydantic import BaseModel, Field
 
-from app.llm.prompts import Prompt
+from app.llm.models import PROMPT_HANDLER_LIST
 
 class ContentTypeEnum(str, Enum):
     COURSE = "COURSE"
@@ -13,7 +13,7 @@ class ContentTypeEnum(str, Enum):
 
 class PromptStoreBase(BaseModel):
     content_type: ContentTypeEnum
-    prompt: Prompt
+    prompt: PROMPT_HANDLER_LIST
     response: Optional[Union[str, dict]] = None
     data: Optional[Dict[str, str]] = None
     created_at: datetime = Field(default_factory=datetime.datetime.utcnow)
