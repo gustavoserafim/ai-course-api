@@ -19,7 +19,7 @@ class PromptStoreService:
         log_list = []
         skip = (filters.page - 1) * filters.page_size
         total = await self.collection.count_documents({})
-        async for log in self.collection.find().sort(filters.sort_by, -1).skip(skip).limit(filters.page_size):
+        async for log in self.collection.find({"scores": {"$exists": True, "$ne": null}, "response": {"$type": "string"}}).sort(filters.sort_by, -1).skip(skip).limit(filters.page_size):
             log['id'] = str(log['_id'])
             log_list.append(PromptStore(**log))
         return {
