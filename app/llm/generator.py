@@ -31,7 +31,7 @@ async def retryable_tela_request(
         log = PromptStoreCreate(
             content_type=ContentTypeEnum.COURSE,
             prompt=prompt,
-            response=response,
+            response=str(response),
             data=kwargs)
 
         await prompt_store_service.register_log(log)
@@ -75,7 +75,7 @@ async def generate_course_modules(
         log = PromptStoreCreate(
             content_type=ContentTypeEnum.COURSE,
             prompt=prompt,
-            response=response,
+            response=str(response),
             data={
                 "course_id": str(course.id)
             }
