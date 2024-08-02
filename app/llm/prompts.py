@@ -4,23 +4,28 @@ from typing import Awaitable, Union
 from opentelemetry import trace
 
 from app.models.course import Course
-from app.llm.models import PROMPT_HANDLER_LIST, MotorEnum, PromptMotorA, PromptMotorB, prompt_handler_factory
+from app.llm.models import (
+    PROMPT_HANDLER_LIST,
+    MotorEnum,
+    PromptMotorA,
+    PromptMotorB,
+    prompt_handler_factory,
+)
 
 tracer = trace.get_tracer(__name__)
 
-async def convert_outline_prompt(
-    outline: str,
-    motor: MotorEnum = MotorEnum.MOTOR_A) -> PROMPT_HANDLER_LIST:
 
+async def convert_outline_prompt(
+    outline: str, motor: MotorEnum = MotorEnum.MOTOR_A
+) -> PROMPT_HANDLER_LIST:
     prompt_handler = await prompt_handler_factory(motor)
 
     with tracer.start_as_current_span("convert_outline_prompt") as span:
-    
         outline_structured = {
-            "1. SISTEMAS OPERACIONAIS" : [ 
-                '1.1. HISTÓRIA DOS SISTEMAS OPERACIONAIS', 
-                '1.2. GERENCIAMENTO DE PROCESSOS', 
-                '1.3. GERENCIAMENTO DE MEMÓRIA'
+            "1. SISTEMAS OPERACIONAIS": [
+                "1.1. HISTÓRIA DOS SISTEMAS OPERACIONAIS",
+                "1.2. GERENCIAMENTO DE PROCESSOS",
+                "1.3. GERENCIAMENTO DE MEMÓRIA",
             ]
         }
 
@@ -41,21 +46,21 @@ async def convert_outline_prompt(
 
 
 async def course_detail_prompt(
-    course: Course,
-    motor: MotorEnum = MotorEnum.MOTOR_A) -> PROMPT_HANDLER_LIST:
-
+    course: Course, motor: MotorEnum = MotorEnum.MOTOR_A
+) -> PROMPT_HANDLER_LIST:
     prompt_handler = await prompt_handler_factory(motor)
 
     with tracer.start_as_current_span("course_detail_prompt") as span:
-
-        output_example = json.dumps({
-            "data": {
-                "generated_description:" : "description",
-                "generated_propose:" : "propose",
-                "generated_introduction:" : "introduction",
-                "generated_conclusion:" : "conclusion",
+        output_example = json.dumps(
+            {
+                "data": {
+                    "generated_description:": "description",
+                    "generated_propose:": "propose",
+                    "generated_introduction:": "introduction",
+                    "generated_conclusion:": "conclusion",
+                }
             }
-        })
+        )
 
         # prompt
         prompt_text = f"""
@@ -88,26 +93,29 @@ async def course_detail_prompt(
         print(prompt)
         return prompt
 
-async def module_objectives_prompt(
-    course: Course, 
-    motor: MotorEnum = MotorEnum.MOTOR_A) -> Union[PromptMotorA, PromptMotorB]:
 
+async def module_objectives_prompt(
+    course: Course, motor: MotorEnum = MotorEnum.MOTOR_A
+) -> Union[PromptMotorA, PromptMotorB]:
     prompt_handler = await prompt_handler_factory(motor)
 
     with tracer.start_as_current_span("module_objectives_prompt") as span:
+        output_example = json.dumps(
+            {
+                "data": [
+                    {
+                        "name": "module name",
+                        "objective": "generated objective of module",
+                        "subtopics": ["subtopic 1", "subtopic 2"],
+                    }
+                ]
+            }
+        )
 
-        output_example = json.dumps({
-            "data": [{
-                "name": "module name",
-                "objective": "generated objective of module",
-                "subtopics": ["subtopic 1", "subtopic 2"]
-            }]
-        })
-            
         prompt_text = f"""
             Eu tenho o seguinte outline:
 
-            {course.outline_structured}
+            {json.dumps(course.outline_structured)}
 
             Essa estrutura possui tópicos e subtópicos. Os tópicos representam
             o nome dos módulos e os sub-tópicos representam os assuntos que serão
@@ -139,20 +147,20 @@ async def module_objectives_prompt(
         print(prompt)
         return prompt
 
+
 async def lesson_prompt(
     course_name: str,
     module_name: str,
     lesson_name: str,
-    motor: MotorEnum = MotorEnum.MOTOR_A
+    motor: MotorEnum = MotorEnum.MOTOR_A,
 ) -> Union[PromptMotorA, PromptMotorB]:
-    
     prompt_handler = await prompt_handler_factory(motor)
 
     with tracer.start_as_current_span("lesson_prompt") as span:
         span.set_attribute("course_name", str(course_name))
         span.set_attribute("module_name", str(module_name))
         span.set_attribute("lesson_name", str(lesson_name))
-        
+
         prompt_text = f"""
             Você está desenvolvendo o conteúdo para o curso universitário 
             "{course_name}", especificamente para a aula "{lesson_name}", que 

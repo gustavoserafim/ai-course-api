@@ -14,8 +14,13 @@ class CourseStatusEnum(str, Enum):
     QA_REVIEW = "QA_REVIEW"
     PUBLISHED = "PUBLISHED"
 
+
 class Course(BaseModel):
-    id: ObjectId = Field(default_factory=ObjectId, alias="_id", description="Identificador único para o curso")
+    id: ObjectId = Field(
+        default_factory=ObjectId,
+        alias="_id",
+        description="Identificador único para o curso",
+    )
     name: str
     nature: Optional[str] = None
     semester_workload: Optional[int] = None
@@ -40,7 +45,7 @@ class Course(BaseModel):
     generated_introduction: Optional[str] = None
     generated_conclusion: Optional[str] = None
     html: Optional[str] = None
-    outline_structured: Optional[Dict[str, List[str]]] = None
+    outline_structured: Optional[Dict] = {}
 
     created_at: datetime = Field(default_factory=datetime.datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.datetime.utcnow)
@@ -48,7 +53,7 @@ class Course(BaseModel):
     class Config:
         json_encoders = {ObjectId: str}
         arbitrary_types_allowed = True
-    
+
     def to_response(self):
         data = {
             "id": str(self.id),
@@ -76,6 +81,6 @@ class Course(BaseModel):
             "generated_introduction": self.generated_introduction,
             "generated_conclusion": self.generated_conclusion,
             "created_at": str(self.created_at),
-            "updated_at": str(self.updated_at)
+            "updated_at": str(self.updated_at),
         }
         return CourseResponse(**data)
