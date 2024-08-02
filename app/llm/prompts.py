@@ -8,6 +8,37 @@ from app.llm.models import PROMPT_HANDLER_LIST, MotorEnum, PromptMotorA, PromptM
 
 tracer = trace.get_tracer(__name__)
 
+async def convert_outline_prompt(
+    outline: str,
+    motor: MotorEnum = MotorEnum.MOTOR_A) -> PROMPT_HANDLER_LIST:
+
+    prompt_handler = await prompt_handler_factory(motor)
+
+    with tracer.start_as_current_span("convert_outline_prompt") as span:
+    
+        outline_structured = {
+            "1. SISTEMAS OPERACIONAIS" : [ 
+                '1.1. HISTÓRIA DOS SISTEMAS OPERACIONAIS', 
+                '1.2. GERENCIAMENTO DE PROCESSOS', 
+                '1.3. GERENCIAMENTO DE MEMÓRIA'
+            ]
+        }
+
+        prompt_text = f"""
+            Eu tenho o seguinte outline:
+
+            {outline}
+
+            E gostaria que você convertesse para essa estrutura, sem adicionar comentários a resposta:
+
+            {outline_structured}
+        """
+
+        prompt = await prompt_handler(prompt_text)
+        span.set_attribute("prompt", str(prompt.model_dump()))
+        print(prompt)
+        return prompt
+
 
 async def course_detail_prompt(
     course: Course,
@@ -16,14 +47,6 @@ async def course_detail_prompt(
     prompt_handler = await prompt_handler_factory(motor)
 
     with tracer.start_as_current_span("course_detail_prompt") as span:
-
-        outline_structured = {
-            "1. SISTEMAS OPERACIONAIS" : [ 
-                '1.1. HISTÓRIA DOS SISTEMAS OPERACIONAIS', 
-                '1.2. GERENCIAMENTO DE PROCESSOS', 
-                '1.3. GERENCIAMENTO DE MEMÓRIA'
-            ]
-        }
 
         output_example = json.dumps({
             "data": {
@@ -42,7 +65,7 @@ async def course_detail_prompt(
 
             O curso que você está elaborando possui o seguinte ouline:
 
-            {outline_structured}
+            {course.outline_structured}
 
             Onde, o primeiro nível do outline é o nome do módulo do curso e
             o segundo nível do outline são os assuntos que serão abordados em
@@ -73,14 +96,6 @@ async def module_objectives_prompt(
 
     with tracer.start_as_current_span("module_objectives_prompt") as span:
 
-        outline_structured = {
-            "1. SISTEMAS OPERACIONAIS" : [ 
-                '1.1. HISTÓRIA DOS SISTEMAS OPERACIONAIS', 
-                '1.2. GERENCIAMENTO DE PROCESSOS', 
-                '1.3. GERENCIAMENTO DE MEMÓRIA'
-            ]
-        }
-
         output_example = json.dumps({
             "data": [{
                 "name": "module name",
@@ -92,7 +107,7 @@ async def module_objectives_prompt(
         prompt_text = f"""
             Eu tenho o seguinte outline:
 
-            {outline_structured}
+            {course.outline_structured}
 
             Essa estrutura possui tópicos e subtópicos. Os tópicos representam
             o nome dos módulos e os sub-tópicos representam os assuntos que serão

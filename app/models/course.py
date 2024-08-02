@@ -1,6 +1,6 @@
 import datetime
 from enum import Enum
-from typing import Optional
+from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 from bson import ObjectId
 from app.schemas.course import CourseResponse
@@ -40,6 +40,8 @@ class Course(BaseModel):
     generated_introduction: Optional[str] = None
     generated_conclusion: Optional[str] = None
     html: Optional[str] = None
+    outline_structured: Optional[Dict[str, List[str]]] = None
+
     created_at: datetime = Field(default_factory=datetime.datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.datetime.utcnow)
 
@@ -73,7 +75,6 @@ class Course(BaseModel):
             "generated_propose": self.generated_propose,
             "generated_introduction": self.generated_introduction,
             "generated_conclusion": self.generated_conclusion,
-            "html": self.html,
             "created_at": str(self.created_at),
             "updated_at": str(self.updated_at)
         }

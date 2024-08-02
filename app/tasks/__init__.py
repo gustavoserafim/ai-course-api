@@ -9,6 +9,7 @@ from app.schemas.lesson import LessonCreate
 from app.schemas.module import ModuleCreate
 from app.services.lesson_service import LessonService
 from app.llm.generator import (
+  convert_outline_to_json,
   generate_course_detail, 
   generate_course_modules, 
   generate_module_lesson, 
@@ -42,6 +43,15 @@ async def task_unified_generate_course(
                 "status": "PROCESSING"
             })
             await course_service.update_course(course.id, course_status)
+
+            # generate outline structured
+            outline_structured = await convert_outline_to_json(
+                outline=course.learning_topics,
+                motor=motor)
+        
+            await course_service.update_course(course.id, CourseUpdate(**{
+                "outline_structured": outline_structured
+            }))
 
             # generate course detail
             course_details = await generate_course_detail(course, motor=motor)

@@ -1,4 +1,5 @@
 import traceback
+from typing import Any
 from app.llm import models
 from app.llm.models import MotorEnum
 from app.llm import prompts
@@ -40,6 +41,39 @@ async def retryable_tela_request(
             break
 
     return response
+
+async def convert_outline_to_json(
+    outline: str,
+    motor: MotorEnum = MotorEnum.MOTOR_A
+) -> str:
+    assert outline is not None, "exception:OUTLINE_REQUIDED"
+
+    with tracer.start_as_current_span("generate_course_detail") as span:
+        try:
+            prompt_store_service = await make_prompt_store_service()
+            tela_request_generation = await tela_request_factory(motor)
+
+            prompt = await prompts.convert_outline_prompt(outline, motor=motor)
+            response = await tela_request_generation(prompt)
+            print(response)
+
+            log = PromptStoreCreate(
+                content_type=ContentTypeEnum.COURSE,
+                prompt=prompt,
+                response=str(response),
+                data={
+                    "outline": outline
+                }
+            )
+
+            await prompt_store_service.register_log(log)
+            return response
+
+        except Exception as e:
+            span.set_status(trace.StatusCode.ERROR)
+            print(f"An error occurred: {e}")
+            traceback.print_exc()
+            raise e
 
 async def generate_course_detail(
     course: Course,
