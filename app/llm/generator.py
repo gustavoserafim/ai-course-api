@@ -53,7 +53,9 @@ async def generate_course_detail(
 
         try:
             prompt = await prompts.course_detail_prompt(course=course, motor=motor)
-            return await retryable_tela_request(prompt, motor, course_id=str(course.id))
+            content = await retryable_tela_request(prompt, motor, course_id=str(course.id))
+            print(content)
+            return content
         except Exception as e:
             span.set_status(trace.StatusCode.ERROR)
             print(f"An error occurred: {e}")
@@ -71,6 +73,7 @@ async def generate_course_modules(
 
         prompt = await prompts.module_objectives_prompt(course=course, motor=motor)
         response = await tela_request_generation(prompt)
+        print(response)
 
         log = PromptStoreCreate(
             content_type=ContentTypeEnum.COURSE,
