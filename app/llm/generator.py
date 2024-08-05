@@ -133,18 +133,23 @@ async def generate_course_modules(
 
 async def generate_module_lesson(
     course_id: str,
+    learning_topics: str,
     course_name: str,
     module_name: str,
     lesson_name: str,
     motor: MotorEnum = MotorEnum.MOTOR_A,
 ) -> str:
     assert all(
-        [course_id, course_name, module_name, lesson_name]
+        [course_id, learning_topics, course_name, module_name, lesson_name]
     ), "exception:COURSE_REQUIDED"
 
     try:
         prompt = await prompts.lesson_prompt(
-            course_name, module_name, lesson_name, motor=motor
+            learning_topics, 
+            course_name, 
+            module_name, 
+            lesson_name, 
+            motor=motor
         )
         return await retryable_tela_request(
             prompt, motor, course_id=str(course_id), output="text"

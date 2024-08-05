@@ -150,6 +150,7 @@ async def module_objectives_prompt(
 
 
 async def lesson_prompt(
+    learning_topics: str,
     course_name: str,
     module_name: str,
     lesson_name: str,
@@ -163,22 +164,27 @@ async def lesson_prompt(
         span.set_attribute("lesson_name", str(lesson_name))
 
         prompt_text = f"""
-            Você está desenvolvendo o conteúdo para o curso universitário 
-            "{course_name}", especificamente para a aula "{lesson_name}", que 
-            pertence ao módulo "{module_name}".
-            
-            Siga as diretrizes abaixo:
-            
-            * **Público-alvo:** Estudantes universitários. 
-            * **Extensão:** Aproximadamente 3000 palavras. 
-            * **Estrutura:** Apresentação, desenvolvimento de conceitos-chave, 
-              exemplos, estudos de caso (se houver), conclusão. 
-            * **Linguagem:** Português do Brasil, formal, clara e concisa. 
-            * **Engajamento:** Inclua exemplos, perguntas reflexivas e conexões 
-              com o mundo real para facilitar o aprendizado. Mantenha o foco em 
-              criar uma experiência de aprendizado completa e envolvente, sem 
-              adicionar comentários ao conteúdo.
+        You are an expert instructor specializing in creating educational courses 
+        for '{course_name}'. 
+
+        This course has the following outline:
+        {learning_topics}
+
+        In this outline, the first level represents the course modules, while the 
+        second level specifies the topics covered within each module.
+
+        Your task is to develop a comprehensive and detailed class for the topic 
+        "{lesson_name}", ensuring rich and extended coverage.
+
+        A thorough explanation of the concepts.
+        Relevant examples to illustrate key points.
+
+        The content should consist of at least 2000 words. The output MUST be in 
+        Brazilian Portuguese.
+
+        Please ensure the content is comprehensive, engaging, and informative.
         """
+
         prompt = await prompt_handler(prompt_text)
         span.set_attribute("prompt", str(prompt.model_dump()))
         return prompt
