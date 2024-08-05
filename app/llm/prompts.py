@@ -46,7 +46,8 @@ async def convert_outline_prompt(
 
 
 async def course_detail_prompt(
-    course: Course, motor: MotorEnum = MotorEnum.MOTOR_A
+    course: Course, 
+    motor: MotorEnum = MotorEnum.MOTOR_A
 ) -> PROMPT_HANDLER_LIST:
     prompt_handler = await prompt_handler_factory(motor)
 
@@ -62,28 +63,38 @@ async def course_detail_prompt(
             }
         )
 
-        # prompt
         prompt_text = f"""
-            Você é especialista em desenvolvimento de conteúdo instrucional de um 
-            curso universitário de '{course.name}' e está elaborando uma apresentação
-            do curso para para os alunos que irão cursa-lo.
+            You are an expert instructor specializing in creating educational 
+            courses for '{course.name}'. You are tasked with developing a 
+            comprehensive course presentation for prospective students. 
+            The course is structured according to the following outline:
 
-            O curso que você está elaborando possui o seguinte ouline:
+            {json.dumps(course.outline_structured)}
 
-            {course.outline_structured}
+            In this outline, the first level represents the course modules, and 
+            the second level details the specific topics covered within each module.
 
-            Onde, o primeiro nível do outline é o nome do módulo do curso e
-            o segundo nível do outline são os assuntos que serão abordados em
-            cada módulo.
+            Please generate the following content:
 
-            Quero que você gere o conteúdo abaixo:
+            * Course Description: Provide a concise course overview, summarizing 
+            the main topics and objectives.
 
-            1. **Descrição do Curso**: Resumo dos principais temas e objetivos.
-            2. **Propósito do Curso**: Importância e o que os alunos irão aprender.
-            3. **Introdução do Curso**: Resumo do que os alunos explorarão.
-            4. **Considerações Finais**: Incentivo para matricular-se e benefícios.
+            * Course Purpose: Explain the importance of the course and what students 
+            will gain from it.
 
-            Formato JSON desejado, não adicione comentários na resposta:
+            * Course Introduction: Offer a good introduction that catches the 
+            interest of the course content giving the learners an idea of what 
+            to expect, highlighting what students will explore throughout the modules.
+
+            * Final Considerations: Create the Final Consideration including a 
+            motivational closing that encourages students to apply the knowledge 
+            they received from the course.
+
+            Make sure to capture the essence and value of the course in each section, 
+            making it appealing and informative for potential students.
+
+            The result MUST be in Portuguese from Brazil and formatted to JSON 
+            like the example below:
 
             {output_example}
         """
@@ -113,34 +124,24 @@ async def module_objectives_prompt(
         )
 
         prompt_text = f"""
-            Eu tenho o seguinte outline:
+        You are an expert instructor specializing in creating educational courses 
+        for '{course.name}'. Your task is to develop the specific goals for each 
+        module of the course, taking into consideration the topics outlined for 
+        each module.
 
-            {json.dumps(course.outline_structured)}
+        The course outline is:
 
-            Essa estrutura possui tópicos e subtópicos. Os tópicos representam
-            o nome dos módulos e os sub-tópicos representam os assuntos que serão
-            abordados no módulo.
+        {json.dumps(course.outline_structured)}
 
-            Gostaria que você escrevesse um objetivo para cada módulo.
+        The result MUST be in Portuguese from Brazil and formatted as JSON, 
+        following the example provided below:
             
-            O resultado deve seguir o formato JSON válido, sem adicionar 
-            comentários ao conteúdo:
-            
-            {output_example}
+        {output_example}
 
-            Certifique-se de que não haja vírgulas extras após o último item em 
-            qualquer array ou objeto.
-
-            Observe que haverá apenas um objeto para o primeiro nível do outline.
-
-            Os subtopicos estarão dentro da lista de subtópicos na estrutura sugerida.
-
-            Escreva um objetivo para cada módulo baseado nos assuntos que serão abordados.
-
-            No output você deve omitir as marcações númericas.
-
-            Escreva a resposta em português do Brasil.
-            """
+        Please ensure that each goal is clearly defined and accurately reflects 
+        the content and objectives of the corresponding module. The objective must 
+        be in Portuguese and the subtopics without the numbers.
+        """
 
         prompt = await prompt_handler(prompt_text)
         span.set_attribute("prompt", str(prompt.model_dump()))
