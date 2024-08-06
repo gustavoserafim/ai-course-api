@@ -8,5 +8,6 @@ class Settings:
     MONGODB_URI: str = os.getenv("MONGODB_URI")
     TELA_MOTOR_A_URL: str = os.getenv("TELA_MOTOR_A_URL")
     TELA_MOTOR_B_URL: str = os.getenv("TELA_MOTOR_B_URL")
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
 
 settings = Settings()

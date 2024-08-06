@@ -6,8 +6,8 @@ from app.core.config import settings
 from opentelemetry import trace
 
 from app.llm import prompts
-from app.llm.handlers import handle_response_motor_a, handle_response_motor_b
-from app.llm.models import MotorEnum, PROMPT_HANDLER_LIST
+from app.llm.handlers import handle_response_motor_a, handle_response_motor_b, handle_response_openai
+from app.llm.models import MotorEnum, PromptOpenAi
 
 tracer = trace.get_tracer(__name__)
 
@@ -74,9 +74,27 @@ async def request_motor_b(prompt: prompts.PromptMotorB, output: str='json'):
         headers=headers,
         payload=payload,
         output=output,
-        span_name="request_to_TELA_generate",
+        span_name="request_to_OPENAI_generate",
         response_handler=handle_response_motor_b)
 
+async def request_openai(
+    prompt: PromptOpenAi,
+    output: str='json'):
+    url = f"https://api.openai.com/v1/chat/completions"
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {settings.OPENAI_API_KEY}',
+    }
+
+    payload = prompt.model_dump()
+
+    return await make_tela_request(
+        url=url,
+        headers=headers,
+        payload=payload,
+        output=output,
+        span_name="request_to_TELA_generate",
+        response_handler=handle_response_openai)
 
 async def calculate_readability_metrics(text):
     import random
@@ -96,5 +114,7 @@ async def tela_request_factory(
             return request_motor_a
         case MotorEnum.MOTOR_B:
             return request_motor_b
+        case MotorEnum.OPEN_AI:
+            return request_openai
         case _:
             raise ValueError(f"Invalid motor: {motor}")

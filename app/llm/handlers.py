@@ -31,3 +31,17 @@ def handle_response_motor_b(response, output='json'):
         print(f"An error occurred while processing response: {e}")
         traceback.print_exc()
         raise e
+
+def handle_response_openai(response, output='json'):
+    print(response.json())
+    try:
+        result = response.json()['choices'][0]['message']['content'].strip()
+
+        if output == 'json': 
+            return json.loads(result)
+        return result
+
+    except Exception as e:
+        print(f"An error occurred while processing response: {e}")
+        traceback.print_exc()
+        raise e
