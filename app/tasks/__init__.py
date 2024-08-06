@@ -52,14 +52,36 @@ async def task_unified_generate_course(
                 course.id, CourseUpdate(**{"outline_structured": outline_structured})
             )
 
+            await ws.broadcast(
+                json.dumps(
+                    {
+                        "message": f'Generating course details',
+                        "status": "PROCESSING",
+                        "course_id": str(course.id)
+                    }
+                )
+            )
+
             # generate course detail
             course_details = await generate_course_detail(course, motor=motor)
             details = CourseUpdate(**course_details.get("data"))
             await course_service.update_course(course.id, details)
 
+            await ws.broadcast(
+                json.dumps(
+                    {
+                        "message": f'Generating modules',
+                        "status": "PROCESSING",
+                        "course_id": str(course.id)
+                    }
+                )
+            )
+
             # generate course modules
             module_details = await generate_course_modules(course, motor=motor)
 
+            total_lessons = len([lesson for module in module_details.get("data") for lesson in module["subtopics"]])
+            lesson_count = 1
             for module in module_details.get("data"):
                 module_dict = {
                     "course_id": str(course.id),
@@ -72,6 +94,15 @@ async def task_unified_generate_course(
 
                 # generate lessons
                 for lesson_name in new_module.subtopics:
+                    await ws.broadcast(
+                        json.dumps(
+                            {
+                                "message": f'Generating lessons [{lesson_count}/{total_lessons}]',
+                                "status": "PROCESSING",
+                                "course_id": str(course.id)
+                            }
+                        )
+                    )
                     content = await generate_module_lesson(
                         course_id = str(course.id),
                         learning_topics=course.learning_topics,
@@ -90,6 +121,7 @@ async def task_unified_generate_course(
 
                     new_lesson = LessonCreate(**lesson_data)
                     await lesson_service.create_lesson(new_lesson)
+                    lesson_count += 1
 
             # update course status to READY
             course_status = CourseUpdate(**{"status": "READY"})
@@ -101,6 +133,7 @@ async def task_unified_generate_course(
                     {
                         "message": f'Content generation of course "{course.name}" completed',
                         "status": "COMPLETED",
+                        "course_id": str(course.id)
                     }
                 )
             )
@@ -111,6 +144,7 @@ async def task_unified_generate_course(
                         "message": f'We had a problem to generate course content for "{course.name}"',
                         "details": str(e),
                         "status": "ERROR",
+                        "course_id": str(course.id)
                     }
                 )
             )
