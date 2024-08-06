@@ -2,12 +2,15 @@ import traceback
 from typing import Callable
 import httpx
 from app.core.config import settings
+import google.generativeai as genai
 
 from opentelemetry import trace
 
 from app.llm import prompts
-from app.llm.handlers import handle_response_motor_a, handle_response_motor_b, handle_response_openai
+from app.llm.handlers import handle_response_gemini, handle_response_motor_a, handle_response_motor_b, handle_response_openai
 from app.llm.models import MotorEnum, PromptOpenAi
+
+genai.configure(api_key=settings.GOOGLE_API_KEY)
 
 tracer = trace.get_tracer(__name__)
 
@@ -96,6 +99,13 @@ async def request_openai(
         span_name="request_to_TELA_generate",
         response_handler=handle_response_openai)
 
+async def request_gemini(prompt: str, output: str='json'):
+    payload = prompt.model_dump()
+    model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+    response = model.generate_content(payload.get('prompt'))
+    print(response.text)
+    return handle_response_gemini(response, output)
+
 async def calculate_readability_metrics(text):
     import random
     responses = [
@@ -116,5 +126,7 @@ async def tela_request_factory(
             return request_motor_b
         case MotorEnum.OPEN_AI:
             return request_openai
+        case MotorEnum.GEMINI:
+            return request_gemini
         case _:
             raise ValueError(f"Invalid motor: {motor}")

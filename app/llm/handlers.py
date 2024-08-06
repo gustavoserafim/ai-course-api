@@ -45,3 +45,18 @@ def handle_response_openai(response, output='json'):
         print(f"An error occurred while processing response: {e}")
         traceback.print_exc()
         raise e
+
+def handle_response_gemini(response, output='json'):
+    try:
+        result = response.text
+        cleaned_result = re.sub(r"(```json|```)", "", result, flags=re.DOTALL)
+
+        if output == 'json': 
+            return json.loads(cleaned_result)
+        return cleaned_result
+
+    except Exception as e:
+        print(f"An error occurred while processing response: {e}")
+        traceback.print_exc()
+        raise e    
+    

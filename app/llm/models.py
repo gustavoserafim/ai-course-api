@@ -7,6 +7,7 @@ class MotorEnum(str, Enum):
     MOTOR_A = "motor_a"
     MOTOR_B = "motor_b"
     OPEN_AI = "open_ai"
+    GEMINI = "gemini"
 
 class OpenAiModelEnum(str, Enum):
     GPT35 = "gpt-3.5-turbo"
@@ -42,10 +43,14 @@ class PromptOpenAi(BaseModel):
     n: int = 1
     temperature: float = 0.1
 
+class DummyModel(BaseModel):
+    prompt: str
+
 PROMPT_HANDLER_LIST = Union[
     PromptMotorA, 
     PromptMotorB,
-    PromptOpenAi
+    PromptOpenAi,
+    DummyModel
 ]
 
 async def make_params_motor_a(prompt_text: str) -> PromptMotorA:
@@ -71,6 +76,9 @@ async def make_params_openai(
     
     return PromptOpenAi(messages=[prompt])
 
+async def make_params_gemini(prompt_text: str) -> DummyModel:
+    return DummyModel(prompt=prompt_text)
+
 async def prompt_handler_factory(motor: MotorEnum) -> Callable:
 
     match motor:
@@ -80,5 +88,7 @@ async def prompt_handler_factory(motor: MotorEnum) -> Callable:
             return make_params_motor_b
         case MotorEnum.OPEN_AI:
             return make_params_openai
+        case MotorEnum.GEMINI:
+            return make_params_gemini
         case _:
             raise ValueError(f"Invalid motor: {motor}")
