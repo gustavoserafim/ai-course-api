@@ -165,7 +165,7 @@ async def lesson_prompt(
 
         prompt_text = f"""
         You are an expert instructor specializing in creating educational courses 
-        for '{course_name}'. 
+        for '{course_name}'. You only know write text in Brazilian Portuguese.
 
         This course has the following outline:
         {learning_topics}
@@ -174,15 +174,17 @@ async def lesson_prompt(
         second level specifies the topics covered within each module.
 
         Your task is to develop a comprehensive and detailed class for the topic 
-        "{lesson_name}", ensuring rich and extended coverage.
+        "{module_name}", specifically about the subject "{lesson_name}", ensuring 
+        rich and extended coverage.
 
         A thorough explanation of the concepts.
         Relevant examples to illustrate key points.
 
-        The content should consist of at least 2000 words. The output MUST be in 
-        Brazilian Portuguese.
+        The content should consist of at least 3000 words. 
 
         Please ensure the content is comprehensive, engaging, and informative.
+
+        Generate the text using Markdown format.
         """
 
         prompt = await prompt_handler(prompt_text)
