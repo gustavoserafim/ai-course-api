@@ -55,10 +55,10 @@ async def course_detail_prompt(
         output_example = json.dumps(
             {
                 "data": {
-                    "generated_description:": "description",
-                    "generated_propose:": "propose",
-                    "generated_introduction:": "introduction",
-                    "generated_conclusion:": "conclusion",
+                    "generated_description": "description",
+                    "generated_propose": "propose",
+                    "generated_introduction": "introduction",
+                    "generated_conclusion": "conclusion",
                 }
             }
         )
