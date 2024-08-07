@@ -55,6 +55,9 @@ async def generate_content(
         print("STARTING GENERATION")
         course = await course_service.get_course(course_id)
 
+        if not course:
+            raise HTTPException(status_code=404, detail="Course not found")
+
         if payload is None:
             payload = GenerateContentPayload()
 
