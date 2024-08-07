@@ -6,7 +6,6 @@ class ModuleBase(BaseModel):
     course_id: str
     name: str
     generated_objective: Optional[str] = None
-    subtopics: Optional[list[str]] = []
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
 

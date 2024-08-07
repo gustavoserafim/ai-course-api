@@ -6,6 +6,7 @@ class LessonBase(BaseModel):
     module_id: str
     name: str
     content: str
+    script: Optional[str] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
 
