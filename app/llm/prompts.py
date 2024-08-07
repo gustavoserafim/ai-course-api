@@ -125,22 +125,22 @@ async def module_objectives_prompt(
 
         prompt_text = f"""
         You are an expert instructor specializing in creating educational courses 
-        for '{course.name}'. Your task is to develop the specific goals for each 
-        module of the course, taking into consideration the topics outlined for 
-        each module.
+        for '{course.name}'. You only know write text in Brazilian Portuguese.
+        
+        Your task is to develop the specific goals for each  module of the course, 
+        taking into consideration the topics outlined for each module.
 
         The course outline is:
 
         {json.dumps(course.outline_structured)}
 
-        The result MUST be in Portuguese from Brazil and formatted as JSON, 
-        following the example provided below:
+        The result MUST be formatted as JSON, strictly following the example 
+        provided below:
             
         {output_example}
 
         Please ensure that each goal is clearly defined and accurately reflects 
-        the content and objectives of the corresponding module. The objective must 
-        be in Portuguese and the subtopics without the numbers.
+        the content and objectives of the corresponding module.
         """
 
         prompt = await prompt_handler(prompt_text)
