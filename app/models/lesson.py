@@ -1,4 +1,5 @@
 import datetime
+from typing import Optional
 from pydantic import BaseModel, Field
 from bson import ObjectId
 
@@ -10,6 +11,7 @@ class Lesson(BaseModel):
     module_id: ObjectId = Field(default_factory=ObjectId, alias="module_id")
     name: str
     content: str
+    script: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.datetime.utcnow)
     deleted_at: datetime = Field(default_factory=datetime.datetime.utcnow)
@@ -25,6 +27,7 @@ class Lesson(BaseModel):
             "module_id": str(self.module_id),
             "name": self.name,
             "content": self.content,
+            "script": self.script,
             "created_at": str(self.created_at),
             "updated_at": str(self.updated_at)
         }

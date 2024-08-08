@@ -69,7 +69,7 @@ async def course_detail_prompt(
             comprehensive course presentation for prospective students. 
             The course is structured according to the following outline:
 
-            {json.dumps(course.outline_structured)}
+            {json.dumps(course.learning_topics)}
 
             In this outline, the first level represents the course modules, and 
             the second level details the specific topics covered within each module.
@@ -105,39 +105,27 @@ async def course_detail_prompt(
         return prompt
 
 
-async def module_objectives_prompt(
-    course: Course, motor: MotorEnum = MotorEnum.MOTOR_A
+async def module_objective_prompt(
+    course: Course,
+    module_name: str,
+    motor: MotorEnum = MotorEnum.MOTOR_A
 ) -> Union[PromptMotorA, PromptMotorB]:
     prompt_handler = await prompt_handler_factory(motor)
 
     with tracer.start_as_current_span("module_objectives_prompt") as span:
-        output_example = json.dumps(
-            {
-                "data": [
-                    {
-                        "name": "module name",
-                        "objective": "generated objective of module",
-                        "subtopics": ["subtopic 1", "subtopic 2"],
-                    }
-                ]
-            }
-        )
 
         prompt_text = f"""
         You are an expert instructor specializing in creating educational courses 
         for '{course.name}'. You only know write text in Brazilian Portuguese.
         
-        Your task is to develop the specific goals for each  module of the course, 
-        taking into consideration the topics outlined for each module.
+        Your task is to develop the specific goal for the  module '{module_name}'
+        of the course, taking into consideration the topics outlined for the module.
 
         The course outline is:
 
-        {json.dumps(course.outline_structured)}
+        {json.dumps(course.learning_topics)}
 
-        The result MUST be formatted as JSON, strictly following the example 
-        provided below:
-            
-        {output_example}
+        Write the objective without comments or additional information.
 
         Please ensure that each goal is clearly defined and accurately reflects 
         the content and objectives of the corresponding module.
@@ -165,7 +153,7 @@ async def lesson_prompt(
 
         prompt_text = f"""
         You are an expert instructor specializing in creating educational courses 
-        for '{course_name}'. 
+        for '{course_name}'. You only know write text in Brazilian Portuguese.
 
         This course has the following outline:
         {learning_topics}
@@ -179,12 +167,42 @@ async def lesson_prompt(
         A thorough explanation of the concepts.
         Relevant examples to illustrate key points.
 
-        The content should consist of at least 2000 words. The output MUST be in 
-        Brazilian Portuguese.
+        The content should consist of at least 3000 words.
 
         Please ensure the content is comprehensive, engaging, and informative.
+
+        Generate the text using Markdown format.
         """
 
         prompt = await prompt_handler(prompt_text)
         span.set_attribute("prompt", str(prompt.model_dump()))
         return prompt
+
+
+async def lesson_video_script_prompt(
+    lesson_content: str,
+    motor: MotorEnum = MotorEnum.MOTOR_A,
+) -> PROMPT_HANDLER_LIST:
+    prompt_handler = await prompt_handler_factory(motor)
+
+    prompt_text = f"""
+    Act as a screenwriter expert in creating educational courses.
+    The goal is to create a script for a short video with length 
+    between 5 and 7 minutes.
+    
+    The video will be specific about the lesson rather than the 
+    entire course.
+
+    It should have the format of a testimonial video and, the video's 
+    pedagogical objective is explanatory.
+
+    Please remember that you only know how to write text in Brazilian 
+    Portuguese and generate the text using Markdown format.
+
+    Here is the lesson content:
+
+    {lesson_content}
+    """
+
+    prompt = await prompt_handler(prompt_text)
+    return prompt

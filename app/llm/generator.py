@@ -1,8 +1,6 @@
 import traceback
-import json
 import re
 
-from typing import Any
 from app.llm import models
 from app.llm.models import MotorEnum
 from app.llm import prompts
@@ -105,16 +103,21 @@ async def generate_course_detail(
             raise e
 
 
-async def generate_course_modules(
-    course: Course, motor: MotorEnum = MotorEnum.MOTOR_A
+async def generate_module_objective(
+    course: Course,
+    module_name: str, 
+    motor: MotorEnum = MotorEnum.MOTOR_A
 ) -> str:
     assert course is not None, "exception:COURSE_REQUIDED"
     try:
         prompt_store_service = await make_prompt_store_service()
         tela_request_generation = await tela_request_factory(motor)
 
-        prompt = await prompts.module_objectives_prompt(course=course, motor=motor)
-        response = await tela_request_generation(prompt)
+        prompt = await prompts.module_objective_prompt(
+            course=course,
+            module_name=module_name,
+            motor=motor)
+        response = await tela_request_generation(prompt, output='text')
         print(response)
 
         log = PromptStoreCreate(
@@ -144,6 +147,9 @@ async def generate_module_lesson(
     ), "exception:COURSE_REQUIDED"
 
     try:
+        prompt_store_service = await make_prompt_store_service()
+        tela_request_generation = await tela_request_factory(motor)
+
         prompt = await prompts.lesson_prompt(
             learning_topics, 
             course_name, 
@@ -151,9 +157,45 @@ async def generate_module_lesson(
             lesson_name, 
             motor=motor
         )
-        return await retryable_tela_request(
-            prompt, motor, course_id=str(course_id), output="text"
+
+        response = await tela_request_generation(prompt, output='text')
+        print(response)        
+
+        log = PromptStoreCreate(
+            content_type=ContentTypeEnum.COURSE,
+            prompt=prompt,
+            response=str(response),
+            data={"course_id": str(course_id)},
         )
+        await prompt_store_service.register_log(log)
+        return response
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        traceback.print_exc()
+        raise e
+
+async def generate_lesson_video_script(
+    course_id: str,
+    lesson_content: str,
+    motor: MotorEnum = MotorEnum.MOTOR_A) -> str:
+    assert lesson_content is not None, "exception:LESSON_CONTENT_REQUIRED"
+
+    try:
+        prompt_store_service = await make_prompt_store_service()
+        tela_request_generation = await tela_request_factory(motor)
+
+        prompt = await prompts.lesson_video_script_prompt(lesson_content)
+        response = await tela_request_generation(prompt, output='text')
+        print(response)
+
+        log = PromptStoreCreate(
+            content_type=ContentTypeEnum.COURSE,
+            prompt=prompt,
+            response=str(response),
+            data={"course_id": course_id},
+        )
+        await prompt_store_service.register_log(log)
+        return response
     except Exception as e:
         print(f"An error occurred: {e}")
         traceback.print_exc()

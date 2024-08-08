@@ -5,14 +5,15 @@ from app.llm.models import MotorEnum
 from app.models.course import Course
 from app.models.module import Module
 from app.schemas.course import CourseUpdate
-from app.schemas.lesson import LessonCreate
+from app.schemas.lesson import LessonCreate, LessonUpdate
 from app.schemas.module import ModuleCreate
 from app.services.lesson_service import LessonService
 from app.llm.generator import (
     convert_outline_to_json,
     generate_course_detail,
-    generate_course_modules,
+    generate_lesson_video_script,
     generate_module_lesson,
+    generate_module_objective,
 )
 from app.api.endpoints.websocket import manager as ws
 from app.services.course_service import CourseService
@@ -45,12 +46,9 @@ async def task_unified_generate_course(
 
             # generate outline structured
             outline_structured = await convert_outline_to_json(
-                outline=course.learning_topics, motor=motor
-            )
-
-            course = await course_service.update_course(
-                course.id, CourseUpdate(**{"outline_structured": outline_structured})
-            )
+                outline=course.learning_topics, motor=motor)
+            
+            print(outline_structured)
 
             await ws.broadcast(
                 json.dumps(
@@ -77,23 +75,25 @@ async def task_unified_generate_course(
                 )
             )
 
-            # generate course modules
-            module_details = await generate_course_modules(course, motor=motor)
-
-            total_lessons = len([lesson for module in module_details.get("data") for lesson in module["subtopics"]])
+            total_lessons = sum(len(lesson) for lesson in outline_structured.values())
             lesson_count = 1
-            for module in module_details.get("data"):
+            for module_name in outline_structured.keys():
+                module_lessons = outline_structured.get(module_name)
+                generated_objective = await generate_module_objective(
+                    course=course, 
+                    module_name=module_name,
+                    motor=motor)
+
                 module_dict = {
                     "course_id": str(course.id),
-                    "name": module["name"],
-                    "generated_objective": module["objective"],
-                    "subtopics": module["subtopics"],
+                    "name": module_name,
+                    "generated_objective": generated_objective,
                 }
                 new_module = ModuleCreate(**module_dict)
                 module_created = await module_service.create_module(new_module)
 
                 # generate lessons
-                for lesson_name in new_module.subtopics:
+                for lesson_name in module_lessons:
                     await ws.broadcast(
                         json.dumps(
                             {
@@ -120,8 +120,17 @@ async def task_unified_generate_course(
                     }
 
                     new_lesson = LessonCreate(**lesson_data)
-                    await lesson_service.create_lesson(new_lesson)
+                    lesson = await lesson_service.create_lesson(new_lesson)
                     lesson_count += 1
+
+                    script = await generate_lesson_video_script(
+                        course_id=str(course.id),
+                        lesson_content = content,
+                        motor=motor)
+                    
+                    await lesson_service.update_lesson(
+                        lesson_id=lesson.id, 
+                        lesson_data=LessonUpdate(**{"script": script}))
 
             # update course status to READY
             course_status = CourseUpdate(**{"status": "READY"})
