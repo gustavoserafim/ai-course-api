@@ -50,6 +50,8 @@ async def convert_outline_to_json(
     outline: str, motor: MotorEnum = MotorEnum.MOTOR_A
 ) -> dict:
     assert outline is not None, "exception:OUTLINE_REQUIDED"
+    REGEX_TOPIC = r"^\d+\.\s"
+    REGEX_SUBTOPIC = r"^\d+\.\d+\s"
 
     with tracer.start_as_current_span("generate_course_detail") as span:
         try:
@@ -59,18 +61,14 @@ async def convert_outline_to_json(
             lines = outline.strip().split("\n")
             for line in lines:
                 line = line.strip()
-                if re.match(
-                    r"^\d+\.\s", line
-                ):  # Verifica se é uma seção principal (1., 2., 3.)
+                if re.match(REGEX_TOPIC, line):
                     section_number, section_title = line.split(" ", 1)
-                    current_section = section_title
+                    current_section = re.sub(REGEX_TOPIC, "", line).strip()
                     sections[current_section] = []
-                elif re.match(
-                    r"^\d+\.\d+\s", line
-                ):  # Verifica se é um sub-item (1.1, 1.2, 2.1, 2.2)
+                elif re.match(REGEX_SUBTOPIC, line):
                     if current_section:
-                        sections[current_section].append(line)
-
+                        sub_item = re.sub(REGEX_SUBTOPIC, "", line).strip()
+                        sections[current_section].append(sub_item)
             return sections
 
         except Exception as e:
