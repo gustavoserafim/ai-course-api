@@ -21,7 +21,7 @@ class OpenAiPromptMessage(BaseModel):
     content: str
 
 class PromptMotorA(BaseModel):
-    max_new_tokens: int = 2000
+    max_new_tokens: int = 4000
     temperature: float = 0.1
     top_p: float = 0.95
     repetition_penalty: float = 1.2
@@ -29,7 +29,7 @@ class PromptMotorA(BaseModel):
 
 
 class MotorBParameters(BaseModel):
-    max_new_tokens: int = 2000
+    max_new_tokens: int = 4000
     temperature: float = 0.1
 
 class PromptMotorB(BaseModel):
@@ -39,7 +39,7 @@ class PromptMotorB(BaseModel):
 class PromptOpenAi(BaseModel):
     model: str = 'gpt-3.5-turbo'
     messages: List[OpenAiPromptMessage]
-    max_tokens: int = 2000
+    max_tokens: int = 4000
     n: int = 1
     temperature: float = 0.1
 
